@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="<%= lang %>">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= t(title) %></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/AUDIT_style.css">
+</head>
+<body style="background:#e9edf1">
+<div class="AUDIT_toolbar">
+  <a href="<%= typeof backLink !== 'undefined' ? backLink : '/reports' %>">← Back</a>
+  <span>Print language:</span>
+  <a href="?<%= new URLSearchParams({ ...query, rl: 'en' }).toString() %>">English</a>
+  <a href="?<%= new URLSearchParams({ ...query, rl: 'bn' }).toString() %>">বাংলা</a>
+  <button class="AUDIT_btn AUDIT_sm" onclick="window.print()">Print / Save as PDF</button>
+</div>
+<div class="AUDIT_print">
+  <div class="AUDIT_letterhead">
+    <b><%= nm(org) %></b>
+    <%= nm(org, 'address') %>
+  </div>

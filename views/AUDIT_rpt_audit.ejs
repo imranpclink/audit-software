@@ -1,0 +1,69 @@
+<%- include('partials/AUDIT_print_head', { title: 'Audit Report', backLink: '/audits/' + a.audit_id }) %>
+<% const bn = lang === 'bn'; const stdText = (r) => r.std_min !== null && r.std_max !== null ? `${num(r.std_min)} – ${num(r.std_max)}` : r.std_min !== null ? `≥ ${num(r.std_min)}` : `≤ ${num(r.std_max)}`; %>
+<h1><%= bn ? 'অভ্যন্তরীণ অডিট রিপোর্ট' : 'Internal Audit Report' %></h1>
+<% if (a.status === 'IN_PROGRESS' || a.status === 'SUBMITTED') { %><p style="text-align:center;color:#b3261e"><b><%= bn ? 'খসড়া' : 'DRAFT' %></b></p><% } %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Branch') %></th><td><%= nm(a, 'office') %> (<%= a.office_code %>)</td><th><%= t('Audit no.') %></th><td><%= a.audit_no %></td></tr>
+  <tr><th><%= t('Area') %> / <%= t('Zone') %></th><td><%= chain.AREA ? nm(chain.AREA) : '' %> / <%= chain.ZONE ? nm(chain.ZONE) : '' %></td><th><%= t('Audit type') %></th><td><%= nm(a, 'type') %> (<%= st(a.plan_kind) %>)</td></tr>
+  <tr><th><%= t('Audit period') %></th><td><%= date(a.period_from) %> – <%= date(a.period_to) %></td><th><%= bn ? 'অডিটের তারিখ' : 'Audit dates' %></th><td><%= date(a.start_date) %> – <%= date(a.end_date) %></td></tr>
+  <tr><th><%= t('Team') %></th><td colspan="3"><%= team.map(m => `${nm(m)} (${m.designation})`).join(', ') %></td></tr>
+</table>
+
+<h2>১. <%= bn ? 'শাখার তথ্য ও পিকেএসএফ মানদণ্ডের তুলনা' : 'Branch figures against PKSF standards' %></h2>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Indicator') %></th><th class="AUDIT_num"><%= t('Current cut-off') %> (<%= date(a.period_to) %>)</th><th class="AUDIT_num"><%= t('Last audit') %></th><th class="AUDIT_num"><%= t('Standard') %></th><th><%= t('Risk') %></th></tr>
+  <% for (const r of comparison.filter(r => r.show_in_report)) { %><tr><td><%= nm(r) %></td><td class="AUDIT_num"><%= r.current === null ? '—' : num(r.current) %></td><td class="AUDIT_num"><%= r.last === null ? '—' : num(r.last) %></td><td class="AUDIT_num"><%= stdText(r) %></td><td><%= r.risk ? st(r.risk) : '' %></td></tr><% } %>
+</table>
+
+<h2>২. <%= bn ? 'অভ্যন্তরীণ নিয়ন্ত্রণ: চেকলিস্টের ব্যতিক্রম' : 'Internal control: checklist exceptions' %></h2>
+<p class="AUDIT_small"><%= bn ? `${digits(total)}টি যাচাই প্রশ্নের মধ্যে ${digits(answered)}টির উত্তর দেওয়া হয়েছে; ${digits(exceptions.length)}টি ব্যতিক্রম।` : `${answered} of ${total} checkpoints answered; ${exceptions.length} exception(s).` %></p>
+<% if (exceptions.length) { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Area') %></th><th><%= bn ? 'যাচাই প্রশ্ন' : 'Checkpoint' %></th><th><%= bn ? 'উত্তর' : 'Answer' %></th><th><%= t('Comment') %></th></tr>
+  <% for (const c of exceptions) { %><tr><td><%= digits(c.area_serial) %>. <%= nm(c, 'area') %></td><td><%= bn ? c.question_bn : c.question_en %></td><td><%= st(c.answer) %></td><td><%= c.comment || '' %></td></tr><% } %>
+</table>
+<% } %>
+
+<h2>৩. <%= bn ? 'আত্মসাৎ ও আর্থিক অনিয়ম' : 'Fraud and financial irregularities' %></h2>
+<% if (!fraud.length) { %><p><%= bn ? 'কোনো আত্মসাৎ পাওয়া যায়নি।' : 'No fraud found.' %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('PIN') %></th><th><%= t('Name') %></th><th><%= t('Designation') %></th><th><%= bn ? 'ধরন' : 'Type' %></th><th class="AUDIT_num"><%= t('Amount') %></th><th class="AUDIT_num"><%= bn ? 'তাৎক্ষণিক আদায়' : 'Recovered on the spot' %></th><th class="AUDIT_num"><%= t('Balance') %></th></tr>
+  <% for (const f of fraud) { %><tr><td><%= digits(f.pin) %></td><td><%= nm(f) %></td><td><%= f.designation %></td><td><%= st(f.fraud_type) %></td><td class="AUDIT_num"><%= money(f.amount) %></td><td class="AUDIT_num"><%= money(f.recovered_spot) %></td><td class="AUDIT_num"><%= money(f.amount - f.recovered_spot) %></td></tr><% } %>
+  <tr><th colspan="4"><%= t('Total') %></th><th class="AUDIT_num"><%= money(fraud.reduce((s, f) => s + f.amount, 0)) %></th><th class="AUDIT_num"><%= money(fraud.reduce((s, f) => s + f.recovered_spot, 0)) %></th><th class="AUDIT_num"><%= money(fraud.reduce((s, f) => s + f.amount - f.recovered_spot, 0)) %></th></tr>
+</table>
+<% } %>
+
+<h2>৪. <%= bn ? 'পর্যবেক্ষণ, নিরীক্ষকের মন্তব্য ও সুপারিশ' : 'Observations, auditor comments and recommendations' %></h2>
+<% for (const b of obs) { %>
+<table class="AUDIT_grid" style="margin-bottom:10px">
+  <tr><th style="width:24%"><%= b.obs_no %></th><th><%= b.title %> <% if (b.confidential) { %>[<%= t('Confidential') %>]<% } %></th></tr>
+  <tr><td><%= t('Area') %></td><td><%= nm(b, 'area') %></td></tr>
+  <tr><td><%= t('Observation details') %></td><td class="AUDIT_pre"><%= b.details %></td></tr>
+  <% if (b.auditor_comment) { %><tr><td><%= t('Auditor comment') %></td><td class="AUDIT_pre"><%= b.auditor_comment %></td></tr><% } %>
+  <% if (b.recommendation) { %><tr><td><%= t('Recommendation') %></td><td class="AUDIT_pre"><%= b.recommendation %></td></tr><% } %>
+  <tr><td><%= t('Risk level') %></td><td><%= st(b.risk_code) %><% if (b.amount) { %> · <%= t('Amount involved') %>: ৳<%= money(b.amount) %><% } %><% if (b.corrected_on_spot) { %> · <%= t('Corrected on the spot') %><% } %></td></tr>
+  <% if (b.persons.length) { %><tr><td><%= t('Responsible persons') %></td><td><%= b.persons.map(p => `${nm(p)} (${digits(p.pin)}, ${p.designation})`).join('; ') %></td></tr><% } %>
+</table>
+<% } %>
+<% if (!obs.length) { %><p><%= t('Nothing here yet.') %></p><% } %>
+
+<h2>৫. <%= bn ? 'পূর্ববর্তী অডিটের ফলোআপ' : 'Follow-up of the previous audit' %></h2>
+<% if (!prevObs.length) { %><p><%= bn ? 'পূর্ববর্তী অডিটের কোনো পর্যবেক্ষণ নেই।' : 'No observations from the previous audit.' %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Observation') %></th><th><%= t('Title') %></th><th><%= t('Risk') %></th><th><%= t('Current status') %></th></tr>
+  <% for (const p of prevObs) { %><tr><td><%= p.obs_no %></td><td><%= p.title %></td><td><%= st(p.risk_code) %></td><td><%= st(p.status) %><% if (carried[p.obs_id]) { %> → <%= carried[p.obs_id].obs_no %><% } %></td></tr><% } %>
+</table>
+<% } %>
+
+<h2>৬. <%= bn ? 'সারসংক্ষেপ' : 'Summary' %></h2>
+<table class="AUDIT_grid">
+  <tr><% for (const k of ['CRITICAL','HIGH','MEDIUM','LOW']) { %><th><%= st(k) %></th><% } %><th><%= t('Total') %></th></tr>
+  <tr><% for (const k of ['CRITICAL','HIGH','MEDIUM','LOW']) { %><td><%= digits(obs.filter(b => b.risk_code === k).length) %></td><% } %><td><%= digits(obs.length) %></td></tr>
+</table>
+<% if (a.branch_ack_name) { %><p class="AUDIT_small"><%= t('Branch acknowledgement') %>: <%= a.branch_ack_name %> · <%= a.branch_ack_comment %></p><% } %>
+
+<div class="AUDIT_sign">
+  <% for (const m of team) { %><div><%= nm(m) %><br><%= m.designation %></div><% } %>
+  <div><%= st('CAO') %></div>
+</div>
+<%- include('partials/AUDIT_print_foot') %>

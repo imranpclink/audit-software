@@ -1,0 +1,6 @@
+<% if (typeof user !== 'undefined') { %><%- include('partials/AUDIT_head', { title: 'Error' }) %><% } else { %><!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/static/AUDIT_style.css"></head><body><main class="AUDIT_content"><% } %>
+<div class="AUDIT_panel">
+  <h1><%= message %></h1>
+  <p><a href="/">← <%= t('Dashboard') %></a></p>
+</div>
+<% if (typeof user !== 'undefined') { %><%- include('partials/AUDIT_foot') %><% } else { %></main></body></html><% } %>

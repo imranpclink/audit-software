@@ -1,0 +1,11 @@
+<%- include('partials/AUDIT_head', { title: 'Notifications' }) %>
+<h1><%= t('Notifications') %></h1>
+<div class="AUDIT_panel">
+<% if (!rows.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } %>
+<table class="AUDIT_grid">
+  <% for (const n of rows) { %>
+  <tr><td class="AUDIT_nowrap AUDIT_muted"><%= date(n.created_at) %></td><td><% if (!n.is_read) { %><b><% } %><%= n.message %><% if (!n.is_read) { %></b><% } %></td><td><% if (n.link) { %><a href="<%= n.link %>"><%= t('Open') %></a><% } %></td></tr>
+  <% } %>
+</table>
+</div>
+<%- include('partials/AUDIT_foot') %>

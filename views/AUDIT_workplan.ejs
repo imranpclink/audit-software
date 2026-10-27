@@ -1,0 +1,31 @@
+<%- include('partials/AUDIT_head', { title: 'Work Plan' }) %>
+<h1><%= t('Work Plan') %></h1>
+<p class="AUDIT_muted"><%= lang === 'bn' ? 'অডিটে যাওয়ার আগে দিনভিত্তিক পরিকল্পনা। নীতি অনুযায়ী কর্মপরিকল্পনায় অনুমোদন লাগে না।' : 'Day-wise plan before going to the field. By policy the work plan needs no approval.' %></p>
+<form method="post" action="/workplan">
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Date') %></th><th><%= t('Office') %></th><th><%= t('Audit no.') %></th><th><%= t('Night stay') %></th><th><%= t('Morning plan') %></th><th><%= t('Afternoon plan') %></th></tr>
+  <% for (let i = 0; i < 5; i++) { %>
+  <tr>
+    <td><input type="date" name="rows[<%= i %>][plan_date]"></td>
+    <td><select name="rows[<%= i %>][office_id]"><option value="">—</option><% for (const o of offices) { %><option value="<%= o.office_id %>"><%= nm(o) %></option><% } %></select></td>
+    <td><select name="rows[<%= i %>][audit_id]"><option value="">—</option><% for (const a of myAudits) { %><option value="<%= a.audit_id %>"><%= a.audit_no %></option><% } %></select></td>
+    <td><input type="text" name="rows[<%= i %>][night_stay]"></td>
+    <td><input type="text" name="rows[<%= i %>][morning_plan]"></td>
+    <td><input type="text" name="rows[<%= i %>][afternoon_plan]"></td>
+  </tr>
+  <% } %>
+</table>
+</div>
+<button class="AUDIT_btn"><%= t('Save') %></button>
+</form>
+<h2><%= lang === 'bn' ? 'আমার কর্মপরিকল্পনা' : 'My work plan' %></h2>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!rows.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Date') %></th><th><%= t('Office') %></th><th><%= t('Audit no.') %></th><th><%= t('Night stay') %></th><th><%= t('Morning plan') %></th><th><%= t('Afternoon plan') %></th><th><%= t('Status') %></th></tr>
+  <% for (const w of rows) { %><tr><td class="AUDIT_nowrap"><%= date(w.plan_date) %></td><td><%= nm(w, 'office') %></td><td><%= w.audit_no || '' %></td><td><%= w.night_stay %></td><td><%= w.morning_plan %></td><td><%= w.afternoon_plan %></td><td><%- badge(w.status) %></td></tr><% } %>
+</table>
+<% } %>
+</div>
+<%- include('partials/AUDIT_foot') %>

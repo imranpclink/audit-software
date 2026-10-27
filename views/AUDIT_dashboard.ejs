@@ -1,0 +1,79 @@
+<%- include('partials/AUDIT_head', { title: 'Dashboard' }) %>
+<div class="AUDIT_pagehead">
+  <div><h1><%= t('Dashboard') %></h1><div class="AUDIT_muted"><%= nm(org) %> · <%= date(new Date().toISOString()) %></div></div>
+</div>
+
+<% if (mine.length) { const due = mine.filter(b => ['SENT','REISSUED','PARTLY'].includes(b.status)); %>
+<div class="AUDIT_panel">
+  <h2><%= t('My Observations') %></h2>
+  <p><%= lang === 'bn' ? `${digits(due.length)}টি পর্যবেক্ষণের জবাব দিতে হবে।` : `${due.length} observation(s) need your reply.` %> <a href="/my-observations"><%= t('Open') %> →</a></p>
+</div>
+<% } %>
+
+<div class="AUDIT_cards">
+  <div class="AUDIT_card"><div class="AUDIT_n"><%= digits(d.done) %> / <%= digits(d.planned) %></div><div class="AUDIT_l"><%= t('Plan vs done') %> (<%= digits(new Date().getFullYear()) %>)</div></div>
+  <div class="AUDIT_card"><div class="AUDIT_n"><%= digits(inbox.length) %></div><div class="AUDIT_l"><%= t('Pending approvals') %></div></div>
+  <div class="AUDIT_card"><div class="AUDIT_n"><%= digits(d.openCount) %></div><div class="AUDIT_l"><%= lang === 'bn' ? 'অনিষ্পন্ন পর্যবেক্ষণ' : 'Open observations' %></div></div>
+  <div class="AUDIT_card <%= d.overdue ? 'AUDIT_alert' : '' %>"><div class="AUDIT_n"><%= digits(d.overdue) %></div><div class="AUDIT_l"><%= t('Overdue replies') %></div></div>
+  <div class="AUDIT_card"><div class="AUDIT_n">৳<%= money(d.fraud.found) %></div><div class="AUDIT_l"><%= t('Fraud found') %> · <%= t('Recovered') %> ৳<%= money(d.recovered) %></div></div>
+</div>
+
+<div class="AUDIT_two">
+  <div class="AUDIT_panel">
+    <h3><%= t('Audits by status') %></h3>
+    <% const maxS = Math.max(1, ...Object.values(d.byStatus)); %>
+    <% for (const s of ['PENDING_APPROVAL','APPROVED','IN_PROGRESS','SUBMITTED','REPORT_APPROVED','UNDER_RESPONSE','CLOSED']) { if (!d.byStatus[s]) continue; %>
+      <div class="AUDIT_bar"><span class="AUDIT_lbl"><a href="/audits?status=<%= s %>"><%= st(s) %></a></span><span class="AUDIT_track"><span class="AUDIT_fill" style="width:<%= d.byStatus[s] / maxS * 100 %>%"></span></span><span class="AUDIT_val"><%= digits(d.byStatus[s]) %></span></div>
+    <% } %>
+    <% if (!d.total) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } %>
+  </div>
+  <div class="AUDIT_panel">
+    <h3><%= t('Open observations by risk') %></h3>
+    <% const maxR = Math.max(1, ...Object.values(d.openByRisk)); %>
+    <% for (const k of ['CRITICAL','HIGH','MEDIUM','LOW']) { if (!d.openByRisk[k]) continue; %>
+      <div class="AUDIT_bar"><span class="AUDIT_lbl"><a href="/reports/observations?risk=<%= k %>"><%= st(k) %></a></span><span class="AUDIT_track"><span class="AUDIT_fill" style="width:<%= d.openByRisk[k] / maxR * 100 %>%;background:<%= risks[k].colour %>"></span></span><span class="AUDIT_val"><%= digits(d.openByRisk[k]) %></span></div>
+    <% } %>
+    <% if (!d.openCount) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } %>
+  </div>
+</div>
+
+<% if (inbox.length) { %>
+<div class="AUDIT_panel">
+  <h3><%= t('Approval Inbox') %></h3>
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Item') %></th><th><%= t('Reference') %></th><th><%= t('Submitted by') %></th><th><%= t('Submitted on') %></th><th></th></tr>
+    <% for (const x of inbox) { %>
+    <tr><td><%= st(x.item_type) %></td><td><%= x.reference %></td><td><%= x.submitted_by_name %></td><td><%= date(x.submitted_at) %></td><td><a class="AUDIT_btn AUDIT_sm" href="/approvals/<%= x.appr_id %>"><%= t('Open') %></a></td></tr>
+    <% } %>
+  </table>
+</div>
+<% } %>
+
+<% if (audits.length) { %>
+<div class="AUDIT_panel">
+  <h3><%= t('Audits') %></h3>
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Audit no.') %></th><th><%= t('Office') %></th><th><%= t('Audit type') %></th><th><%= t('Start date') %></th><th><%= t('Status') %></th></tr>
+    <% for (const a of audits) { %>
+    <tr><td><a href="/audits/<%= a.audit_id %>"><%= a.audit_no %></a> <% if (a.plan_kind === 'SURPRISE') { %><%- badge('SURPRISE') %><% } %></td><td><%= nm(a, 'office') %></td><td><%= nm(a, 'type') %></td><td><%= date(a.start_date) %></td><td><%- badge(a.status) %></td></tr>
+    <% } %>
+  </table>
+</div>
+<% } %>
+
+<% if (d.branches.length && !['BM','STAFF'].includes(user.role)) { %>
+<div class="AUDIT_panel">
+  <h3><%= t('Branch Risk Rating') %></h3>
+  <div class="AUDIT_scroll">
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Branch') %></th><th><%= t('Risk rating') %></th><th><%= t('Last audit') %></th><th class="AUDIT_num"><%= t('Days since last audit') %></th></tr>
+    <% for (const b of d.branches.sort((x, y) => (y.days_since ?? 9999) - (x.days_since ?? 9999))) { %>
+    <tr><td><%= nm(b) %> <span class="AUDIT_muted AUDIT_small"><%= b.office_code %></span></td><td><%- riskBadge(b.risk_rating) %></td><td><%= b.last_audit ? date(b.last_audit) : t('Never audited') %></td>
+      <td class="AUDIT_num <%= b.days_since > 300 ? 'AUDIT_overdue' : '' %>"><%= b.days_since === null ? '' : digits(b.days_since) %></td></tr>
+    <% } %>
+  </table>
+  </div>
+  <p class="AUDIT_muted AUDIT_small"><%= lang === 'bn' ? 'টিওআর অনুযায়ী প্রতিটি শাখা ৬ থেকে ১০ মাসে একবার অডিট হবে। ৩০০ দিনের বেশি হলে লাল দেখানো হয়েছে।' : 'TOR: every branch is audited every 6 to 10 months. Over 300 days is shown in red.' %></p>
+</div>
+<% } %>
+<%- include('partials/AUDIT_foot') %>

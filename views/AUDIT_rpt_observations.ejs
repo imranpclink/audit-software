@@ -1,0 +1,21 @@
+<%- include('partials/AUDIT_print_head', { title }) %>
+<h1><%= t(title) %></h1>
+<% if (!pending) { %>
+<form class="AUDIT_actions AUDIT_noprint" style="justify-content:center;margin-bottom:12px">
+  <input type="hidden" name="rl" value="<%= lang %>">
+  <select name="status" style="width:200px"><option value=""><%= lang === 'bn' ? 'সব অবস্থা' : 'All statuses' %></option><% for (const s of ['OPEN','SENT','REPLIED','REISSUED','PARTLY','RESOLVED','CLOSED','CARRIED_FORWARD']) { %><option value="<%= s %>" <%= query.status === s ? 'selected' : '' %>><%= st(s) %></option><% } %></select>
+  <select name="risk" style="width:160px"><option value=""><%= lang === 'bn' ? 'সব ঝুঁকি' : 'All risks' %></option><% for (const k of ['CRITICAL','HIGH','MEDIUM','LOW']) { %><option value="<%= k %>" <%= query.risk === k ? 'selected' : '' %>><%= st(k) %></option><% } %></select>
+  <button class="AUDIT_btn AUDIT_sm">Filter</button>
+</form>
+<% } %>
+<% const today = new Date().toISOString().slice(0, 10); %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Observation') %></th><th><%= t('Branch') %></th><th><%= t('Title') %></th><th><%= t('Risk') %></th><th class="AUDIT_num"><%= t('Amount') %></th><th class="AUDIT_num"><%= t('Recovered') %></th><th><%= t('Responsible persons') %></th><th><%= t('Deadline') %></th><% if (pending) { %><th class="AUDIT_num"><%= lang === 'bn' ? 'মেয়াদোত্তীর্ণ দিন' : 'Days overdue' %></th><% } %><th><%= t('Status') %></th></tr>
+  <% for (const b of rows) { const od = b.deadline && b.deadline < today && ['SENT','REISSUED','PARTLY'].includes(b.status) ? Math.round((Date.parse(today) - Date.parse(b.deadline)) / 86400000) : 0; %>
+  <tr><td class="AUDIT_nowrap"><a href="/observations/<%= b.obs_id %>"><%= b.obs_no %></a></td><td><%= nm(b, 'office') %></td><td><%= b.title %></td><td><%= st(b.risk_code) %></td><td class="AUDIT_num"><%= b.amount ? money(b.amount) : '' %></td><td class="AUDIT_num"><%= b.recovered ? money(b.recovered) : '' %></td>
+    <td class="AUDIT_small"><%= b.persons.map(p => nm(p)).join(', ') %></td><td class="AUDIT_nowrap"><%= date(b.deadline) %></td>
+    <% if (pending) { %><td class="AUDIT_num <%= od ? 'AUDIT_overdue' : '' %>"><%= od ? digits(od) : '' %></td><% } %><td><%= st(b.status) %></td></tr>
+  <% } %>
+</table>
+<p class="AUDIT_small"><%= t('Total') %>: <%= digits(rows.length) %></p>
+<%- include('partials/AUDIT_print_foot') %>

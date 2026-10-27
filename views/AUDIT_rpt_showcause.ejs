@@ -1,0 +1,22 @@
+<%- include('partials/AUDIT_print_head', { title: 'Show-cause Letter', backLink: '/audits/' + a.audit_id }) %>
+<% const bn = lang === 'bn'; const deadline = obs.map(b => b.deadline).filter(Boolean).sort()[0]; %>
+<div style="display:flex;justify-content:space-between"><div><%= t('Memo no.') %>: <%= org.org_code %>/IA/SC/<%= a.audit_no %></div><div><%= t('Date') %>: <%= date(a.released_at) %></div></div>
+<p style="margin-top:20px"><%= bn ? 'বরাবর' : 'To' %>,<br><%= bm ? nm(bm) : '' %><br><%= st('BM') %>, <%= nm(a, 'office') %></p>
+<p><b><%= t('Subject') %>: <%= bn ? 'অডিট আপত্তির বিষয়ে কারণ দর্শানো প্রসঙ্গে।' : 'Show cause on audit observations.' %></b></p>
+<p><%= bn
+  ? `${date(a.start_date)} হতে ${date(a.end_date)} তারিখ পর্যন্ত আপনার শাখায় পরিচালিত অডিটে (${a.audit_no}) নিম্নলিখিত গুরুতর অনিয়ম পাওয়া গেছে। এ বিষয়ে আপনার ও সংশ্লিষ্ট কর্মীদের লিখিত ব্যাখ্যা ${deadline ? date(deadline) : '৫ কার্যদিবস'} তারিখের মধ্যে সফটওয়্যারে অথবা লিখিতভাবে প্রেরণের নির্দেশ দেওয়া হলো।`
+  : `The audit of your branch from ${date(a.start_date)} to ${date(a.end_date)} (${a.audit_no}) found the serious irregularities below. You and the staff named are instructed to send a written explanation, in the software or in writing, by ${deadline ? date(deadline) : '5 working days'}.` %></p>
+<table class="AUDIT_grid">
+  <tr><th>#</th><th><%= t('Observation') %></th><th class="AUDIT_num"><%= t('Amount') %></th><th><%= t('Responsible persons') %></th></tr>
+  <% obs.forEach((b, i) => { %><tr><td><%= digits(i + 1) %></td><td><b><%= b.title %></b><div class="AUDIT_small AUDIT_pre"><%= b.details %></div></td><td class="AUDIT_num"><%= b.amount ? money(b.amount) : '' %></td><td class="AUDIT_small"><%= b.persons.map(p => `${nm(p)} (${digits(p.pin)}), ${p.designation}`).join('; ') %></td></tr><% }) %>
+</table>
+<% if (fraud.length) { %>
+<h3><%= bn ? 'আত্মসাতের বিবরণ' : 'Fraud details' %></h3>
+<table class="AUDIT_grid">
+  <tr><th><%= t('PIN') %></th><th><%= t('Name') %></th><th><%= t('Designation') %></th><th class="AUDIT_num"><%= bn ? 'আত্মসাৎ' : 'Misappropriated' %></th><th class="AUDIT_num"><%= bn ? 'তাৎক্ষণিক আদায়' : 'Recovered on the spot' %></th></tr>
+  <% for (const f of fraud) { %><tr><td><%= digits(f.pin) %></td><td><%= nm(f) %></td><td><%= f.designation %></td><td class="AUDIT_num"><%= money(f.amount) %></td><td class="AUDIT_num"><%= money(f.recovered_spot) %></td></tr><% } %>
+</table>
+<% } %>
+<div style="margin-top:60px;width:260px;margin-left:auto;text-align:center;border-top:1px solid #1d2733;padding-top:6px"><%= ed ? nm(ed) : '' %><br><%= t('Executive Director') %></div>
+<p style="margin-top:24px"><b><%= t('Copy to') %>:</b> <%= [chain.AREA && `${st('AM')}, ${nm(chain.AREA)}`, chain.ZONE && `${st('ZM')}, ${nm(chain.ZONE)}`, st('CAO'), bn ? 'মানবসম্পদ বিভাগ' : 'Human Resources'].filter(Boolean).join('; ') %></p>
+<%- include('partials/AUDIT_print_foot') %>

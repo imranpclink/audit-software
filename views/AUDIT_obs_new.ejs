@@ -1,0 +1,41 @@
+<%- include('partials/AUDIT_head', { title: 'New observation' }) %>
+<p><a href="/audits/<%= a.audit_id %>?tab=observations">← <%= a.audit_no %></a></p>
+<h1><%= t('New observation') %> · <%= nm(a, 'office') %></h1>
+<form method="post" action="/audits/<%= a.audit_id %>/observations">
+<% if (cp) { %><input type="hidden" name="cp_id" value="<%= cp.cp_id %>"><div class="AUDIT_info"><%= lang === 'bn' ? 'চেকলিস্ট থেকে:' : 'Raised from checklist:' %> <%= lang === 'bn' ? cp.question_bn : cp.question_en %></div><% } %>
+<div class="AUDIT_panel">
+  <div class="AUDIT_row">
+    <div class="AUDIT_field"><label><%= t('Area') %></label><select name="area_id"><% for (const ar of areas) { %><option value="<%= ar.area_id %>" <%= cp && cp.area_id === ar.area_id ? 'selected' : '' %>><%= digits(ar.serial) %>. <%= nm(ar) %></option><% } %></select></div>
+    <div class="AUDIT_field"><label><%= t('Risk level') %></label><select name="risk_code"><% for (const k of Object.keys(risks)) { %><option value="<%= k %>" <%= (cp ? cp.default_risk : 'MEDIUM') === k ? 'selected' : '' %>><%= st(k) %></option><% } %></select></div>
+    <div class="AUDIT_field"><label><%= t('Amount involved') %></label><input type="number" step="0.01" min="0" name="amount"></div>
+  </div>
+  <div class="AUDIT_field"><label><%= t('Title') %> *</label><input type="text" name="title" value="<%= prefillTitle %>" required></div>
+  <div class="AUDIT_field"><label><%= t('Observation details') %> *</label><textarea name="details" required></textarea></div>
+  <div class="AUDIT_two">
+    <div class="AUDIT_field"><label><%= t('Auditor comment') %></label><textarea name="auditor_comment"></textarea></div>
+    <div class="AUDIT_field"><label><%= t('Recommendation') %></label><textarea name="recommendation"></textarea></div>
+  </div>
+  <div class="AUDIT_row">
+    <label class="AUDIT_check"><input type="checkbox" name="is_financial" value="1"> <%= t('Financial irregularity') %></label>
+    <label class="AUDIT_check"><input type="checkbox" name="show_cause" value="1"> <%= t('Include in show-cause letter') %></label>
+    <label class="AUDIT_check"><input type="checkbox" name="confidential" value="1"> <%= t('Confidential') %> (<%= lang === 'bn' ? 'শুধু নির্বাহী পরিচালক ও প্রধান নিরীক্ষা' : 'ED and Chief Audit only' %>)</label>
+    <label class="AUDIT_check"><input type="checkbox" name="corrected_on_spot" value="1"> <%= t('Corrected on the spot') %></label>
+  </div>
+  <div class="AUDIT_field"><label><%= t('Correction note') %></label><input type="text" name="correction_note"></div>
+</div>
+<div class="AUDIT_panel">
+  <h3><%= t('Responsible persons') %></h3>
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Employees') %></th><th><%= t('Role') %></th></tr>
+    <% for (let i = 0; i < 3; i++) { %>
+    <tr><td><select name="persons[<%= i %>][emp_id]"><option value="">—</option><% for (const e of staff) { %><option value="<%= e.emp_id %>"><%= nm(e) %> (<%= digits(e.pin) %>) · <%= e.designation %></option><% } %></select></td>
+      <td><select name="persons[<%= i %>][person_role]"><option value="MAIN"><%= t('Main') %></option><option value="SUPERVISORY"><%= t('Supervisory') %></option></select></td></tr>
+    <% } %>
+  </table>
+</div>
+<div class="AUDIT_actions">
+  <button class="AUDIT_btn"><%= t('Save') %></button>
+  <button class="AUDIT_btn AUDIT_ghost" name="again" value="1"><%= lang === 'bn' ? 'সংরক্ষণ করে আরেকটি' : 'Save and add another' %></button>
+</div>
+</form>
+<%- include('partials/AUDIT_foot') %>

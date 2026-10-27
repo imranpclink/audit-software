@@ -1,0 +1,15 @@
+<%- include('partials/AUDIT_head', { title: 'Approval Inbox' }) %>
+<h1><%= t('Approval Inbox') %></h1>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!rows.length) { %><p class="AUDIT_muted"><%= lang === 'bn' ? 'আপনার অনুমোদনের জন্য কিছু অপেক্ষমাণ নেই।' : 'Nothing is waiting for your approval.' %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Item') %></th><th><%= t('Reference') %></th><th><%= t('Submitted by') %></th><th><%= t('Submitted on') %></th><th class="AUDIT_num"><%= lang === 'bn' ? 'অপেক্ষার দিন' : 'Days waiting' %></th><th></th></tr>
+  <% for (const x of rows) { %>
+  <tr><td><%= st(x.item_type) %></td><td><%= x.reference %></td><td><%= x.submitted_by_name %></td><td><%= date(x.submitted_at) %></td>
+    <td class="AUDIT_num"><%= digits(Math.max(0, Math.round((Date.now() - Date.parse(x.submitted_at.replace(' ', 'T'))) / 86400000))) %></td>
+    <td><a class="AUDIT_btn AUDIT_sm" href="/approvals/<%= x.appr_id %>"><%= t('Open') %></a></td></tr>
+  <% } %>
+</table>
+<% } %>
+</div>
+<%- include('partials/AUDIT_foot') %>

@@ -1,0 +1,206 @@
+<%- include('partials/AUDIT_head', { title: 'Audit Workspace' }) %>
+<% const visibleAfterStart = !['DRAFT','PENDING_APPROVAL','RETURNED','REJECTED','APPROVED'].includes(a.status); %>
+<p><a href="/audits">← <%= t('Audits') %></a></p>
+<div class="AUDIT_pagehead">
+  <div>
+    <h1><%= a.audit_no %> · <%= nm(a, 'office') %></h1>
+    <div class="AUDIT_actions">
+      <%- badge(a.status) %> <%- badge(a.plan_kind) %>
+      <span class="AUDIT_muted"><%= nm(a, 'type') %> · <%= st(a.audit_level) %> · <%= date(a.start_date) %> – <%= date(a.end_date) %></span>
+    </div>
+  </div>
+  <div class="AUDIT_actions">
+    <% if (a.memo_no) { %><a class="AUDIT_btn AUDIT_ghost" href="/reports/order-letter/<%= a.audit_id %>"><%= t('Audit Order Letter') %></a><% } %>
+    <% if (visibleAfterStart && !['BM','STAFF'].includes(user.role)) { %><a class="AUDIT_btn AUDIT_ghost" href="/reports/audit/<%= a.audit_id %>"><%= t('Audit Report') %></a><% } %>
+    <% if (['UNDER_RESPONSE','CLOSED'].includes(a.status) && obs.some(b => b.show_cause) && !['BM','STAFF'].includes(user.role)) { %><a class="AUDIT_btn AUDIT_ghost" href="/reports/show-cause/<%= a.audit_id %>"><%= t('Show-cause Letter') %></a><% } %>
+    <% if (['DRAFT','RETURNED'].includes(a.status) && a.created_by === user.user_id) { %><form method="post" action="/audits/<%= a.audit_id %>/submit-schedule"><button class="AUDIT_btn"><%= t('Submit for approval') %></button></form><% } %>
+    <% if (a.status === 'APPROVED' && isTeam) { %><form method="post" action="/audits/<%= a.audit_id %>/start"><button class="AUDIT_btn"><%= t('Start audit') %></button></form><% } %>
+    <% if (a.status === 'REPORT_APPROVED' && canManage) { %><form method="post" action="/audits/<%= a.audit_id %>/release" onsubmit="return confirm('Release the report? Observations go to the branch with reply deadlines.')"><button class="AUDIT_btn"><%= t('Release report to branch') %></button></form><% } %>
+    <% if (a.status === 'UNDER_RESPONSE' && canManage) { %><form method="post" action="/audits/<%= a.audit_id %>/close"><button class="AUDIT_btn"><%= t('Close audit') %></button></form><% } %>
+  </div>
+</div>
+
+<%- include('partials/AUDIT_approval_box', { approval }) %>
+<% if (approval && approval.item_type === 'REPORT') { %><div class="AUDIT_info"><%= lang === 'bn' ? 'রিপোর্ট পর্যালোচনা: ট্যাবগুলো দেখুন, তারপর অনুমোদন দিন অথবা সংশোধনের জন্য টিমে ফেরত পাঠান।' : 'Report review: look through the tabs, then approve or return it to the team for correction.' %> <a href="/reports/audit/<%= a.audit_id %>"><%= t('Audit Report') %> →</a></div><% } %>
+<% if (a.status === 'APPROVED' && isTeam) { %><div class="AUDIT_info"><%= lang === 'bn' ? 'অডিট অনুমোদিত। মাঠে পৌঁছে "অডিট শুরু" চাপুন।' : 'The audit is approved. Press "Start audit" when the team reaches the office.' %></div><% } %>
+
+<nav class="AUDIT_tabs">
+  <% const tabs = [['overview', lang === 'bn' ? 'সারসংক্ষেপ' : 'Overview']];
+     if (visibleAfterStart && !['BM','STAFF'].includes(user.role)) tabs.push(['followup', `${t('Previous follow-up')}${followup.length ? ' (' + digits(followup.length) + ')' : ''}`], ['checklist', t('Checklist')], ['data', t('Branch data comparison')], ['fraud', t('Fraud register')]);
+     if (visibleAfterStart) tabs.push(['observations', `${t('Observations')} (${digits(obs.length)})`]);
+     if (a.status === 'IN_PROGRESS' && isTeam) tabs.push(['submit', t('Submit audit')]);
+     for (const [k, l] of tabs) { %>
+  <a class="<%= tab === k ? 'AUDIT_on' : '' %>" href="?tab=<%= k %><%= approval ? '&approval=' + approval.appr_id : '' %>"><%= l %></a>
+  <% } %>
+</nav>
+
+<% if (tab === 'overview') { %>
+<div class="AUDIT_two">
+  <div class="AUDIT_panel">
+    <dl class="AUDIT_kv">
+      <dt><%= t('Office') %></dt><dd><%= nm(a, 'office') %> (<%= a.office_code %>)</dd>
+      <dt><%= t('Audit type') %></dt><dd><%= nm(a, 'type') %></dd>
+      <dt><%= t('Audit period') %></dt><dd><%= date(a.period_from) %> – <%= date(a.period_to) %></dd>
+      <dt><%= t('Planned or surprise') %></dt><dd><%= st(a.plan_kind) %><% if (a.plan_kind === 'PLANNED') { %> · <%= t('Notify branch') %>: <%= a.notify_branch ? t('Yes') : t('No') %><% } %></dd>
+      <dt><%= t('Memo no.') %></dt><dd><%= a.memo_no || '—' %></dd>
+      <dt><%= t('Last audit') %></dt><dd><% if (prev) { %><a href="/audits/<%= prev.audit_id %>"><%= prev.audit_no %></a> (<%= date(prev.start_date) %>)<% } else { %>—<% } %></dd>
+      <% if (a.instruction) { %><dt><%= t('Special instruction') %></dt><dd><%= a.instruction %></dd><% } %>
+      <% if (a.branch_ack_name) { %><dt><%= t('Branch acknowledgement') %></dt><dd><%= a.branch_ack_name %> · <%= a.branch_ack_comment %></dd><% } %>
+    </dl>
+  </div>
+  <div class="AUDIT_panel">
+    <h3><%= t('Team') %>: <%= a.team_name %></h3>
+    <table class="AUDIT_grid">
+      <tr><th><%= t('Name') %></th><th><%= t('PIN') %></th><th><%= t('Designation') %></th><th><%= t('Role') %></th></tr>
+      <% for (const m of team) { %><tr><td><%= nm(m) %></td><td><%= digits(m.pin) %></td><td><%= m.designation %></td><td><%= st(m.member_role) %></td></tr><% } %>
+    </table>
+    <% for (const c of conflicts) { %><div class="AUDIT_note" style="margin-top:10px"><%= lang === 'bn' ? 'স্বার্থের দ্বন্দ্ব:' : 'Conflict check:' %> <%= nm(c) %> <%= lang === 'bn' ? 'এই অফিস কাঠামোতে কর্মরত।' : 'works in this office tree.' %></div><% } %>
+  </div>
+</div>
+<% if (workplan.length) { %>
+<div class="AUDIT_panel AUDIT_scroll">
+  <h3><%= t('Work Plan') %></h3>
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Date') %></th><th><%= t('Name') %></th><th><%= t('Night stay') %></th><th><%= t('Morning plan') %></th><th><%= t('Afternoon plan') %></th></tr>
+    <% for (const w of workplan) { %><tr><td class="AUDIT_nowrap"><%= date(w.plan_date) %></td><td><%= w.name_en ? nm(w) : w.username %></td><td><%= w.night_stay %></td><td><%= w.morning_plan %></td><td><%= w.afternoon_plan %></td></tr><% } %>
+  </table>
+</div>
+<% } %>
+<%- include('partials/AUDIT_approval_history', { history }) %>
+<% } %>
+
+<% if (tab === 'followup') { %>
+<div class="AUDIT_info"><%= lang === 'bn' ? 'প্রতিটি অডিটের প্রথম কাজ: পূর্ববর্তী অডিটের অনিষ্পন্ন পর্যবেক্ষণের বর্তমান অবস্থা। নিষ্পন্ন হলে পুরোনোটি বন্ধ হবে; না হলে এই অডিটে নতুন পর্যবেক্ষণ হিসেবে স্থানান্তরিত হবে।' : 'The first job of every audit: the current status of open observations from earlier audits. Resolved items are closed; the rest are carried forward into this audit as new observations.' %></div>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!followup.length) { %><p class="AUDIT_muted"><%= lang === 'bn' ? 'পূর্ববর্তী অডিটের কোনো অনিষ্পন্ন পর্যবেক্ষণ নেই।' : 'No open observations from earlier audits.' %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Observation') %></th><th><%= t('Title') %></th><th><%= t('Risk') %></th><th><%= lang === 'bn' ? 'আগের অবস্থা' : 'Previous status' %></th><th style="min-width:340px"><%= t('Current status') %></th></tr>
+  <% for (const p of followup) { %>
+  <tr><td class="AUDIT_nowrap"><a href="/observations/<%= p.obs_id %>"><%= p.obs_no %></a></td><td><%= p.title %><% if (p.amount) { %><div class="AUDIT_small AUDIT_muted">৳<%= money(p.amount) %></div><% } %></td><td><%- riskBadge(p.risk_code) %></td><td><%- badge(p.status) %></td>
+    <td><% if (editable) { %><form method="post" action="/audits/<%= a.audit_id %>/followup">
+      <input type="hidden" name="obs_id" value="<%= p.obs_id %>">
+      <div class="AUDIT_actions" style="margin-bottom:6px"><select name="current_status" style="width:160px"><option value="NOT_RESOLVED"><%= t('Not resolved') %></option><option value="PARTLY"><%= t('Partly') %></option><option value="RESOLVED"><%= t('Resolved') %></option></select>
+      <button class="AUDIT_btn AUDIT_sm"><%= t('Save') %></button></div>
+      <input type="text" name="note" placeholder="<%= t('Current position') %>" required>
+    </form><% } else { %><span class="AUDIT_muted">—</span><% } %></td></tr>
+  <% } %>
+</table>
+<% } %>
+</div>
+<% const carriedHere = obs.filter(b => b.carried_from_obs_id); if (carriedHere.length) { %>
+<div class="AUDIT_panel"><h3><%= lang === 'bn' ? 'এই অডিটে স্থানান্তরিত' : 'Carried into this audit' %></h3>
+  <table class="AUDIT_grid"><% for (const b of carriedHere) { %><tr><td><a href="/observations/<%= b.obs_id %>"><%= b.obs_no %></a></td><td><%= b.title %></td><td><%- riskBadge(b.risk_code) %></td><td><%- badge(b.status) %></td></tr><% } %></table>
+</div>
+<% } %>
+<% } %>
+
+<% if (tab === 'checklist') { %>
+<% const answered = checklist.filter(c => c.answer).length; %>
+<p class="AUDIT_muted"><%= digits(answered) %> / <%= digits(checklist.length) %> <%= lang === 'bn' ? 'প্রশ্নের উত্তর দেওয়া হয়েছে' : 'questions answered' %><%= a.full_checklist ? '' : (lang === 'bn' ? ' · এই অডিটের ধরনে পূর্ণ চেকলিস্ট বাধ্যতামূলক নয়' : ' · the full checklist is optional for this audit type') %></p>
+<form method="post" action="/audits/<%= a.audit_id %>/checklist">
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th>#</th><th><%= lang === 'bn' ? 'যাচাই প্রশ্ন' : 'Checkpoint' %></th><th><%= t('Risk') %></th><th style="width:140px"><%= lang === 'bn' ? 'উত্তর' : 'Answer' %></th><th style="width:30%"><%= t('Comment') %></th><th></th></tr>
+  <% let lastArea = null; for (const c of checklist) { if (c.area_id !== lastArea) { lastArea = c.area_id; %>
+  <tr><td colspan="6" style="background:#f6f8fa"><b><%= digits(c.area_serial) %>. <%= nm(c, 'area') %></b></td></tr>
+  <% } const bad = c.answer && c.answer !== c.expected && c.answer !== 'NA'; %>
+  <tr>
+    <td></td>
+    <td><%= lang === 'bn' ? c.question_bn : c.question_en %></td>
+    <td><%- riskBadge(c.default_risk) %></td>
+    <td><% if (editable) { %><select name="cp[<%= c.cp_id %>][answer]" style="<%= bad ? 'border-color:#b3261e' : '' %>"><option value=""></option><% for (const k of ['YES','NO','PARTLY','NA']) { %><option value="<%= k %>" <%= c.answer === k ? 'selected' : '' %>><%= st(k) %></option><% } %></select><% } else { %><span class="<%= bad ? 'AUDIT_overdue' : '' %>"><%= c.answer ? st(c.answer) : '—' %></span><% } %></td>
+    <td><% if (editable) { %><input type="text" name="cp[<%= c.cp_id %>][comment]" value="<%= c.comment || '' %>"><% } else { %><%= c.comment || '' %><% } %></td>
+    <td><% if (editable && bad) { %><a class="AUDIT_btn AUDIT_ghost AUDIT_sm" href="/audits/<%= a.audit_id %>/observations/new?cp_id=<%= c.cp_id %>"><%= t('Raise observation') %></a><% } %></td>
+  </tr>
+  <% } %>
+</table>
+</div>
+<% if (editable) { %><button class="AUDIT_btn"><%= t('Save') %></button><% } %>
+</form>
+<% } %>
+
+<% if (tab === 'data') { %>
+<div class="AUDIT_info"><%= org.data_source === 'ERP' ? (lang === 'bn' ? 'তথ্য ইআরপি থেকে কাট-অফ তারিখ অনুযায়ী নেওয়া।' : 'Figures pulled from the ERP as on the cut-off date.') : (lang === 'bn' ? 'তথ্য হাতে এন্ট্রি করা।' : 'Figures entered by hand.') %> <%= t('Current cut-off') %>: <b><%= date(a.period_to) %></b></div>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Indicator') %></th><th class="AUDIT_num"><%= t('Current cut-off') %></th><th class="AUDIT_num"><%= t('Last audit') %></th><th class="AUDIT_num"><%= t('Standard') %></th><th><%= t('Risk') %></th></tr>
+  <% for (const r of comparison) { %>
+  <tr><td><%= nm(r) %><div class="AUDIT_muted AUDIT_small"><%= r.grp %> · <%= r.std_source %></div></td>
+    <td class="AUDIT_num"><b><%= r.current === null ? '—' : num(r.current) %></b></td>
+    <td class="AUDIT_num"><%= r.last === null ? '—' : num(r.last) %></td>
+    <td class="AUDIT_num"><%= r.std_min !== null && r.std_max !== null ? `${num(r.std_min)} – ${num(r.std_max)}` : r.std_min !== null ? `≥ ${num(r.std_min)}` : `≤ ${num(r.std_max)}` %></td>
+    <td><%- riskBadge(r.risk) %></td></tr>
+  <% } %>
+</table>
+</div>
+<% } %>
+
+<% if (tab === 'fraud') { %>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!fraud.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('PIN') %></th><th><%= t('Name') %></th><th><%= t('Designation') %></th><th><%= lang === 'bn' ? 'ধরন' : 'Type' %></th><th class="AUDIT_num"><%= t('Amount') %></th><th class="AUDIT_num"><%= lang === 'bn' ? 'তাৎক্ষণিক আদায়' : 'Recovered on the spot' %></th><th><%= t('Date') %></th><th><%= lang === 'bn' ? 'কীভাবে ধরা পড়েছে' : 'How found' %></th></tr>
+  <% for (const f of fraud) { %><tr><td><%= digits(f.pin) %></td><td><%= nm(f) %></td><td><%= f.designation %></td><td><%= st(f.fraud_type) %></td><td class="AUDIT_num"><%= money(f.amount) %></td><td class="AUDIT_num"><%= money(f.recovered_spot) %></td><td class="AUDIT_nowrap"><%= date(f.found_date) %></td><td><%= f.how_found %></td></tr><% } %>
+  <tr><th colspan="4"><%= t('Total') %></th><th class="AUDIT_num"><%= money(fraud.reduce((s, f) => s + f.amount, 0)) %></th><th class="AUDIT_num"><%= money(fraud.reduce((s, f) => s + f.recovered_spot, 0)) %></th><th colspan="2"></th></tr>
+</table>
+<% } %>
+</div>
+<% if (editable) { %>
+<div class="AUDIT_panel"><h3><%= t('Add') %></h3>
+<form method="post" action="/audits/<%= a.audit_id %>/fraud"><div class="AUDIT_row">
+  <div class="AUDIT_field"><label><%= t('Employees') %></label><select name="emp_id"><% for (const e of staff) { %><option value="<%= e.emp_id %>"><%= nm(e) %> (<%= digits(e.pin) %>) · <%= e.designation %></option><% } %></select></div>
+  <div class="AUDIT_field"><label><%= lang === 'bn' ? 'ধরন' : 'Type' %></label><select name="fraud_type"><% for (const k of ['MISAPPROPRIATED','CASH_IN_HAND','GRACE_COLLECTION','OTHER']) { %><option value="<%= k %>"><%= st(k) %></option><% } %></select></div>
+  <div class="AUDIT_field"><label><%= t('Amount') %></label><input type="number" step="0.01" min="0" name="amount" required></div>
+  <div class="AUDIT_field"><label><%= lang === 'bn' ? 'তাৎক্ষণিক আদায়' : 'Recovered on the spot' %></label><input type="number" step="0.01" min="0" name="recovered_spot"></div>
+  <div class="AUDIT_field"><label><%= t('Date') %></label><input type="date" name="found_date"></div>
+  <div class="AUDIT_field"><label><%= lang === 'bn' ? 'কীভাবে ধরা পড়েছে' : 'How found' %></label><input type="text" name="how_found"></div>
+</div><button class="AUDIT_btn"><%= t('Add') %></button></form></div>
+<% } %>
+<% } %>
+
+<% if (tab === 'observations') { %>
+<% if (editable) { %><p><a class="AUDIT_btn" href="/audits/<%= a.audit_id %>/observations/new">+ <%= t('New observation') %></a></p><% } %>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!obs.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Observation') %></th><th><%= t('Area') %></th><th><%= t('Title') %></th><th><%= t('Risk') %></th><th class="AUDIT_num"><%= t('Amount') %></th><th><%= t('Responsible persons') %></th><th><%= t('Deadline') %></th><th><%= t('Status') %></th><th></th></tr>
+  <% for (const b of obs) { %>
+  <tr>
+    <td class="AUDIT_nowrap"><a href="/observations/<%= b.obs_id %>"><%= b.obs_no %></a></td>
+    <td class="AUDIT_small"><%= nm(b, 'area') %></td>
+    <td><%= b.title %>
+      <% if (b.confidential) { %><span class="AUDIT_flag" style="color:#8e0000"><%= t('Confidential') %></span><% } %>
+      <% if (b.corrected_on_spot) { %><span class="AUDIT_flag" style="color:#2e7d32"><%= t('Corrected on the spot') %></span><% } %>
+      <% if (b.carried_from_obs_id) { %><span class="AUDIT_flag" style="color:#6a3fb5"><%= t('Carried forward') %></span><% } %></td>
+    <td><%- riskBadge(b.risk_code) %></td>
+    <td class="AUDIT_num"><%= b.amount ? money(b.amount) : '' %></td>
+    <td class="AUDIT_small"><%= b.persons.map(p => nm(p)).join(', ') %></td>
+    <td class="AUDIT_nowrap <%= b.overdue ? 'AUDIT_overdue' : '' %>"><%= date(b.deadline) %></td>
+    <td><%- badge(b.status) %></td>
+    <td><% if (editable && !b.carried_from_obs_id) { %><form method="post" action="/observations/<%= b.obs_id %>/delete" onsubmit="return confirm('Delete this observation?')"><button class="AUDIT_btn AUDIT_ghost AUDIT_sm"><%= t('Delete') %></button></form><% } %></td>
+  </tr>
+  <% } %>
+</table>
+<% } %>
+</div>
+<% } %>
+
+<% if (tab === 'submit') { %>
+<div class="AUDIT_panel">
+  <h3><%= lang === 'bn' ? 'পূর্ণতা যাচাই' : 'Completeness check' %></h3>
+  <% if (!problems.length) { %><p style="color:#2e7d32">✓ <%= lang === 'bn' ? 'সব ঠিক আছে। দাখিল করা যাবে।' : 'Everything is complete. The audit can be submitted.' %></p><% } %>
+  <ul><% for (const p of problems) { %><li class="AUDIT_overdue"><%= p %></li><% } %></ul>
+  <% if (isLeader) { %>
+  <form method="post" action="/audits/<%= a.audit_id %>/submit-audit">
+    <h3><%= t('Branch acknowledgement') %></h3>
+    <div class="AUDIT_row">
+      <div class="AUDIT_field"><label><%= lang === 'bn' ? 'শাখা ব্যবস্থাপকের নাম' : 'Branch Manager name' %></label><input type="text" name="ack_name"></div>
+      <div class="AUDIT_field"><label><%= t('Comment') %></label><input type="text" name="ack_comment"></div>
+    </div>
+    <label class="AUDIT_check"><input type="checkbox" required> <%= lang === 'bn' ? 'আমি ঘোষণা করছি যে এই অডিট নীতিমালা অনুযায়ী সম্পন্ন হয়েছে।' : 'I declare this audit was done as per policy.' %></label>
+    <button class="AUDIT_btn" <%= problems.length ? 'disabled' : '' %>><%= t('Submit audit') %></button>
+  </form>
+  <% } else { %><p class="AUDIT_muted"><%= lang === 'bn' ? 'শুধু টিম লিডার দাখিল করতে পারেন।' : 'Only the team leader can submit.' %></p><% } %>
+</div>
+<% } %>
+<%- include('partials/AUDIT_foot') %>

@@ -1,0 +1,20 @@
+{
+  "name": "audit-software",
+  "version": "0.1.0",
+  "description": "AUDIT module: standalone internal audit software for microfinance organizations (multi-organization, Bangla and English)",
+  "private": true,
+  "main": "src/AUDIT_server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/AUDIT_server.js",
+    "seed": "node --disable-warning=ExperimentalWarning scripts/AUDIT_reset_demo.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

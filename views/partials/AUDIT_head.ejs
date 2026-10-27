@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="<%= lang %>">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= typeof title !== 'undefined' ? t(title) + ' · ' : '' %><%= t('Audit') %></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/AUDIT_style.css">
+</head>
+<body>
+<div class="AUDIT_shell">
+<nav class="AUDIT_side">
+  <div class="AUDIT_logo"><b><%= t('Audit') %></b><span><%= nm(org) %></span></div>
+  <% const r = user.role; const on = (p) => (path === p || (p !== '/' && path.startsWith(p + '/')) ? 'AUDIT_on' : ''); %>
+  <a class="<%= on('/') %>" href="/"><%= t('Dashboard') %></a>
+  <% if (['BM','STAFF'].includes(r)) { %><a class="<%= on('/my-observations') %>" href="/my-observations"><%= t('My Observations') %></a><% } %>
+  <% if (r !== 'STAFF') { %>
+    <div class="AUDIT_group"><%= t('Audit Planning') %></div>
+    <% if (['CAO','ED','DM','ZM','AM','ADMIN'].includes(r)) { %><a class="<%= on('/plans') %>" href="/plans"><%= t('Annual Audit Plan') %></a><% } %>
+    <% if (['CAO','ED','DM','ZM','AM','ADMIN','AUDITOR'].includes(r)) { %><a class="<%= on('/teams') %>" href="/teams"><%= t('Audit Teams') %></a><% } %>
+    <a class="<%= on('/audits') %>" href="/audits"><%= t('Audits') %></a>
+    <% if (['AUDITOR','CAO','DM','ZM','AM'].includes(r)) { %><a class="<%= on('/workplan') %>" href="/workplan"><%= t('Work Plan') %></a><% } %>
+    <% if (['ED','CAO','DM','ZM','AM'].includes(r)) { %><a class="<%= on('/approvals') %>" href="/approvals"><%= t('Approval Inbox') %> <% if (pendingApprovals) { %><span class="AUDIT_count"><%= digits(pendingApprovals) %></span><% } %></a><% } %>
+    <div class="AUDIT_group"><%= t('Reports') %></div>
+    <a class="<%= on('/reports') %>" href="/reports"><%= t('Reports') %></a>
+  <% } %>
+  <% if (['ADMIN','ED','CAO'].includes(r)) { %>
+    <div class="AUDIT_group"><%= t('Audit Setup') %></div>
+    <a class="<%= on('/setup') %>" href="/setup"><%= t('Audit Setup') %></a>
+  <% } %>
+  <div class="AUDIT_group"></div>
+  <a class="<%= on('/notifications') %>" href="/notifications"><%= t('Notifications') %> <% if (unread) { %><span class="AUDIT_count"><%= digits(unread) %></span><% } %></a>
+</nav>
+<div class="AUDIT_main">
+  <header class="AUDIT_top">
+    <div class="AUDIT_lang"><a class="<%= lang === 'en' ? 'AUDIT_on' : '' %>" href="/lang/en">English</a> <a class="<%= lang === 'bn' ? 'AUDIT_on' : '' %>" href="/lang/bn">বাংলা</a></div>
+    <div class="AUDIT_who">
+      <b><%= user.name_en ? nm(user) : user.username %></b> · <%= st(user.role) %><br>
+      <span class="AUDIT_muted"><%= user.username %> · <%= org.org_code %></span>
+      · <form method="post" action="/logout"><button class="AUDIT_btn AUDIT_ghost AUDIT_sm"><%= t('Logout') %></button></form>
+    </div>
+  </header>
+  <main class="AUDIT_content">
+  <% if (flash) { %><div class="AUDIT_flash AUDIT_<%= flash.type %>"><%= flash.text %></div><% } %>

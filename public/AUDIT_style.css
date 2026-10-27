@@ -1,0 +1,168 @@
+:root {
+  --AUDIT-bg: #f4f6f8;
+  --AUDIT-panel: #ffffff;
+  --AUDIT-ink: #1d2733;
+  --AUDIT-muted: #637083;
+  --AUDIT-line: #dfe4ea;
+  --AUDIT-brand: #0f5c4d;
+  --AUDIT-brand-2: #157a66;
+  --AUDIT-brand-soft: #e5f2ee;
+  --AUDIT-warn: #b26a00;
+  --AUDIT-warn-soft: #fff4e0;
+  --AUDIT-bad: #b3261e;
+  --AUDIT-bad-soft: #fdeceb;
+  --AUDIT-good: #2e7d32;
+  --AUDIT-good-soft: #e8f5e9;
+  --AUDIT-radius: 8px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--AUDIT-ink);
+  background: var(--AUDIT-bg);
+}
+a { color: var(--AUDIT-brand-2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 24px 0 10px; }
+h3 { font-size: 16px; margin: 18px 0 8px; }
+.AUDIT_muted { color: var(--AUDIT-muted); }
+.AUDIT_small { font-size: 13px; }
+.AUDIT_right { text-align: right; }
+.AUDIT_nowrap { white-space: nowrap; }
+
+/* ---------- layout */
+.AUDIT_shell { display: grid; grid-template-columns: 236px 1fr; min-height: 100vh; }
+.AUDIT_side { background: var(--AUDIT-brand); color: #dbeee8; padding: 16px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.AUDIT_logo { padding: 0 18px 14px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 8px; }
+.AUDIT_logo b { display: block; color: #fff; font-size: 17px; }
+.AUDIT_logo span { font-size: 12px; opacity: .8; }
+.AUDIT_side a { display: flex; justify-content: space-between; align-items: center; color: #dbeee8; padding: 7px 18px; font-size: 14.5px; }
+.AUDIT_side a:hover { background: rgba(255,255,255,.08); text-decoration: none; }
+.AUDIT_side a.AUDIT_on { background: rgba(255,255,255,.16); color: #fff; border-left: 3px solid #8fe3c9; padding-left: 15px; }
+.AUDIT_side .AUDIT_group { padding: 14px 18px 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
+.AUDIT_count { background: #ffcf5a; color: #3a2a00; border-radius: 10px; padding: 0 7px; font-size: 12px; font-weight: 600; }
+.AUDIT_main { min-width: 0; }
+.AUDIT_top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 24px; background: var(--AUDIT-panel); border-bottom: 1px solid var(--AUDIT-line); }
+.AUDIT_top .AUDIT_who { text-align: right; font-size: 13.5px; }
+.AUDIT_top form { display: inline; }
+.AUDIT_lang a { padding: 2px 8px; border: 1px solid var(--AUDIT-line); border-radius: 6px; font-size: 13px; }
+.AUDIT_lang a.AUDIT_on { background: var(--AUDIT-brand); color: #fff; border-color: var(--AUDIT-brand); }
+.AUDIT_content { padding: 20px 24px 48px; max-width: 1280px; }
+.AUDIT_pagehead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+
+/* ---------- panels and grids */
+.AUDIT_panel { background: var(--AUDIT-panel); border: 1px solid var(--AUDIT-line); border-radius: var(--AUDIT-radius); padding: 16px 18px; margin-bottom: 16px; }
+.AUDIT_panel > h2:first-child, .AUDIT_panel > h3:first-child { margin-top: 0; }
+.AUDIT_cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.AUDIT_card { background: var(--AUDIT-panel); border: 1px solid var(--AUDIT-line); border-radius: var(--AUDIT-radius); padding: 12px 14px; }
+.AUDIT_card .AUDIT_n { font-size: 26px; font-weight: 600; line-height: 1.2; }
+.AUDIT_card .AUDIT_l { color: var(--AUDIT-muted); font-size: 13px; }
+.AUDIT_card.AUDIT_alert .AUDIT_n { color: var(--AUDIT-bad); }
+.AUDIT_two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.AUDIT_three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.AUDIT_kv { display: grid; grid-template-columns: 170px 1fr; gap: 4px 12px; font-size: 14.5px; }
+.AUDIT_kv dt { color: var(--AUDIT-muted); }
+.AUDIT_kv dd { margin: 0; }
+
+table.AUDIT_grid { width: 100%; border-collapse: collapse; background: var(--AUDIT-panel); font-size: 14px; }
+.AUDIT_grid th, .AUDIT_grid td { border-bottom: 1px solid var(--AUDIT-line); padding: 7px 8px; text-align: left; vertical-align: top; }
+.AUDIT_grid th { background: #f0f3f6; font-weight: 600; font-size: 13px; color: #3b4756; white-space: nowrap; }
+.AUDIT_grid tr:hover td { background: #fafbfc; }
+.AUDIT_grid td.AUDIT_num, .AUDIT_grid th.AUDIT_num { text-align: right; white-space: nowrap; }
+.AUDIT_scroll { overflow-x: auto; }
+
+/* ---------- tabs */
+.AUDIT_tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--AUDIT-line); margin: 4px 0 16px; flex-wrap: wrap; }
+.AUDIT_tabs a { padding: 8px 14px; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; color: var(--AUDIT-muted); }
+.AUDIT_tabs a.AUDIT_on { background: var(--AUDIT-panel); border-color: var(--AUDIT-line); color: var(--AUDIT-ink); margin-bottom: -1px; font-weight: 600; }
+.AUDIT_tabs a:hover { text-decoration: none; color: var(--AUDIT-ink); }
+
+/* ---------- badges */
+.AUDIT_badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; background: #e8ecf0; color: #3b4756; white-space: nowrap; }
+.AUDIT_st_APPROVED, .AUDIT_st_RESOLVED, .AUDIT_st_CLOSED, .AUDIT_st_AUTO, .AUDIT_st_REPORT_APPROVED, .AUDIT_st_ACCEPT { background: var(--AUDIT-good-soft); color: var(--AUDIT-good); }
+.AUDIT_st_PENDING_APPROVAL, .AUDIT_st_PENDING, .AUDIT_st_SUBMITTED, .AUDIT_st_REPLIED, .AUDIT_st_PARTLY { background: var(--AUDIT-warn-soft); color: var(--AUDIT-warn); }
+.AUDIT_st_RETURNED, .AUDIT_st_REJECTED, .AUDIT_st_REISSUED, .AUDIT_st_REISSUE { background: var(--AUDIT-bad-soft); color: var(--AUDIT-bad); }
+.AUDIT_st_IN_PROGRESS, .AUDIT_st_SENT, .AUDIT_st_UNDER_RESPONSE { background: #e3eefc; color: #1d5bb5; }
+.AUDIT_st_CARRIED_FORWARD, .AUDIT_st_CARRY { background: #efe7fb; color: #6a3fb5; }
+.AUDIT_st_SURPRISE { background: #3b2a5c; color: #fff; }
+.AUDIT_risk { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+.AUDIT_overdue { color: var(--AUDIT-bad); font-weight: 600; }
+.AUDIT_flag { display: inline-block; font-size: 11.5px; padding: 0 6px; border-radius: 4px; border: 1px solid currentColor; margin-left: 4px; }
+
+/* ---------- forms */
+label { display: block; font-size: 13px; color: var(--AUDIT-muted); margin: 0 0 3px; }
+input[type=text], input[type=password], input[type=date], input[type=number], select, textarea {
+  width: 100%; padding: 7px 9px; border: 1px solid #c9d1da; border-radius: 6px; font: inherit; background: #fff; color: var(--AUDIT-ink);
+}
+textarea { min-height: 76px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #9fd8c6; border-color: var(--AUDIT-brand-2); }
+.AUDIT_field { margin-bottom: 12px; }
+.AUDIT_check { display: flex; align-items: center; gap: 6px; color: var(--AUDIT-ink); font-size: 14.5px; margin-bottom: 8px; }
+.AUDIT_check input { width: auto; }
+.AUDIT_row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.AUDIT_btn { display: inline-block; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--AUDIT-brand); background: var(--AUDIT-brand); color: #fff; font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.AUDIT_btn:hover { background: var(--AUDIT-brand-2); text-decoration: none; }
+.AUDIT_btn.AUDIT_ghost { background: #fff; color: var(--AUDIT-brand); }
+.AUDIT_btn.AUDIT_ghost:hover { background: var(--AUDIT-brand-soft); }
+.AUDIT_btn.AUDIT_danger { background: var(--AUDIT-bad); border-color: var(--AUDIT-bad); }
+.AUDIT_btn.AUDIT_sm { padding: 3px 9px; font-size: 13px; }
+.AUDIT_actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.AUDIT_actions form { margin: 0; }
+
+/* ---------- messages */
+.AUDIT_flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; }
+.AUDIT_flash.AUDIT_ok { background: var(--AUDIT-good-soft); color: #1f5a23; }
+.AUDIT_flash.AUDIT_error { background: var(--AUDIT-bad-soft); color: #7d1a14; }
+.AUDIT_note { background: var(--AUDIT-warn-soft); border-left: 4px solid var(--AUDIT-warn); padding: 10px 14px; border-radius: 4px; margin-bottom: 14px; }
+.AUDIT_info { background: var(--AUDIT-brand-soft); border-left: 4px solid var(--AUDIT-brand-2); padding: 10px 14px; border-radius: 4px; margin-bottom: 14px; }
+
+/* ---------- discussion */
+.AUDIT_thread { list-style: none; padding: 0; margin: 0; }
+.AUDIT_thread li { border-left: 3px solid var(--AUDIT-line); padding: 6px 0 10px 14px; margin-left: 6px; position: relative; }
+.AUDIT_thread li::before { content: ''; position: absolute; left: -7px; top: 10px; width: 11px; height: 11px; border-radius: 50%; background: #fff; border: 2px solid var(--AUDIT-brand-2); }
+.AUDIT_thread .AUDIT_meta { font-size: 13px; color: var(--AUDIT-muted); }
+.AUDIT_pre { white-space: pre-wrap; }
+
+/* ---------- bars */
+.AUDIT_bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13.5px; }
+.AUDIT_bar .AUDIT_track { display: block; flex: 1; height: 10px; background: #edf0f3; border-radius: 5px; overflow: hidden; }
+.AUDIT_bar .AUDIT_fill { display: block; height: 100%; background: var(--AUDIT-brand-2); }
+.AUDIT_bar .AUDIT_lbl { width: 150px; }
+.AUDIT_bar .AUDIT_val { width: 40px; text-align: right; font-weight: 600; }
+
+/* ---------- login */
+.AUDIT_login { max-width: 1060px; margin: 40px auto; padding: 0 16px; display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+.AUDIT_demo td { font-size: 13px; padding: 4px 8px; }
+.AUDIT_demo button { background: none; border: none; color: var(--AUDIT-brand-2); cursor: pointer; font: inherit; padding: 0; }
+
+/* ---------- printable reports */
+.AUDIT_print { background: #fff; max-width: 900px; margin: 0 auto; padding: 32px 40px; }
+.AUDIT_print h1 { text-align: center; font-size: 20px; }
+.AUDIT_print .AUDIT_letterhead { text-align: center; border-bottom: 2px solid var(--AUDIT-ink); padding-bottom: 10px; margin-bottom: 18px; }
+.AUDIT_print .AUDIT_letterhead b { font-size: 21px; display: block; }
+.AUDIT_print table.AUDIT_grid th { background: #eef1f4; }
+.AUDIT_print table.AUDIT_grid th, .AUDIT_print table.AUDIT_grid td { border: 1px solid #bfc7d0; }
+.AUDIT_toolbar { background: var(--AUDIT-ink); color: #fff; padding: 8px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.AUDIT_toolbar a { color: #c9f0e3; }
+.AUDIT_sign { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 24px; margin-top: 56px; text-align: center; font-size: 14px; }
+.AUDIT_sign div { border-top: 1px solid var(--AUDIT-ink); padding-top: 6px; }
+
+@media print {
+  .AUDIT_toolbar, .AUDIT_noprint { display: none !important; }
+  body { background: #fff; }
+  .AUDIT_print { padding: 0; max-width: none; }
+}
+
+@media (max-width: 860px) {
+  .AUDIT_shell { grid-template-columns: 1fr; }
+  .AUDIT_side { position: static; height: auto; }
+  .AUDIT_two, .AUDIT_three, .AUDIT_login { grid-template-columns: 1fr; }
+  .AUDIT_content { padding: 16px; }
+  .AUDIT_kv { grid-template-columns: 1fr; }
+  .AUDIT_print { padding: 16px; }
+}

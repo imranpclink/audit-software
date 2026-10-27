@@ -1,0 +1,23 @@
+<%- include('partials/AUDIT_head', { title: 'Annual Audit Plan' }) %>
+<p><a href="/plans">← <%= t('Annual Audit Plan') %></a></p>
+<div class="AUDIT_pagehead">
+  <div><h1><%= plan.plan_no %></h1><div class="AUDIT_actions"><%- badge(plan.status) %> <span class="AUDIT_muted"><%= st(plan.audit_level) %> · <%= digits(plan.plan_year) %> · <%= plan.period %> · <%= plan.username %></span></div></div>
+  <div class="AUDIT_actions">
+    <a class="AUDIT_btn AUDIT_ghost" href="/reports/plan/<%= plan.plan_id %>"><%= t('Print') %></a>
+    <% if (canSubmit) { %><form method="post" action="/plans/<%= plan.plan_id %>/submit"><button class="AUDIT_btn"><%= t('Submit for approval') %></button></form><% } %>
+  </div>
+</div>
+<%- include('partials/AUDIT_approval_box', { approval }) %>
+<% if (plan.remarks) { %><p><%= plan.remarks %></p><% } %>
+<% for (const w of warnings) { %><div class="AUDIT_note"><%= lang === 'bn' ? `${w.team}: ${digits(w.plan_month)} মাসে ${digits(w.n)}টি শাখা, সীমা ${digits(w.max_per_month)}টি।` : `${w.team} has ${w.n} branches in ${w.plan_month}; the limit is ${w.max_per_month} per month.` %></div><% } %>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Month') %></th><th><%= t('Office') %></th><th><%= t('Risk rating') %></th><th><%= t('Audit type') %></th><th><%= t('Team') %></th><th></th></tr>
+  <% for (const i of items) { %>
+  <tr><td><%= digits(i.plan_month) %></td><td><%= nm(i, 'office') %> <span class="AUDIT_muted AUDIT_small"><%= i.office_code %></span></td><td><%- riskBadge(i.risk_rating) %></td><td><%= nm(i, 'type') %></td><td><%= i.team_name || '—' %></td>
+    <td><% if (canSchedule) { %><a class="AUDIT_btn AUDIT_ghost AUDIT_sm" href="/audits/new?plan_item=<%= i.item_id %>"><%= lang === 'bn' ? 'সূচি তৈরি' : 'Schedule' %></a><% } %></td></tr>
+  <% } %>
+</table>
+</div>
+<%- include('partials/AUDIT_approval_history', { history }) %>
+<%- include('partials/AUDIT_foot') %>

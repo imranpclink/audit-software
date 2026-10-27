@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="<%= lang %>">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= t('Login') %> · <%= t('Audit') %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/AUDIT_style.css">
+</head>
+<body>
+<div class="AUDIT_login">
+  <div class="AUDIT_panel">
+    <h1><%= t('Audit') %></h1>
+    <p class="AUDIT_muted"><%= lang === 'bn' ? 'ক্ষুদ্রঋণ প্রতিষ্ঠানের অভ্যন্তরীণ নিরীক্ষা সফটওয়্যার' : 'Internal audit software for microfinance organizations' %></p>
+    <% if (flash) { %><div class="AUDIT_flash AUDIT_<%= flash.type %>"><%= flash.text %></div><% } %>
+    <form method="post" action="/login" id="AUDIT_loginForm">
+      <div class="AUDIT_field"><label><%= t('Username') %></label><input type="text" name="username" id="AUDIT_u" autofocus required></div>
+      <div class="AUDIT_field"><label><%= t('Password') %></label><input type="password" name="password" id="AUDIT_p" required></div>
+      <button class="AUDIT_btn"><%= t('Login') %></button>
+      <span class="AUDIT_lang" style="float:right"><a class="<%= lang === 'en' ? 'AUDIT_on' : '' %>" href="/lang/en">English</a> <a class="<%= lang === 'bn' ? 'AUDIT_on' : '' %>" href="/lang/bn">বাংলা</a></span>
+    </form>
+  </div>
+  <div class="AUDIT_panel">
+    <h2 style="margin-top:0"><%= t('Demo users') %></h2>
+    <p class="AUDIT_muted AUDIT_small">Password for every demo user: <b>demo123</b>. Click a username to sign in as that user.</p>
+    <div class="AUDIT_scroll">
+    <table class="AUDIT_grid AUDIT_demo">
+      <tr><th><%= t('Username') %></th><th><%= t('Role') %></th><th><%= t('Name') %></th><th><%= t('Office') %></th><th><%= t('Organization') %></th></tr>
+      <% for (const d of demo) { %>
+      <tr><td><button type="button" onclick="document.getElementById('AUDIT_u').value='<%= d.username %>';document.getElementById('AUDIT_p').value='demo123';document.getElementById('AUDIT_loginForm').submit()"><%= d.username %></button></td>
+        <td><%= st(d.role) %></td><td><%= d.name_en ? nm(d) : '' %></td><td><%= nm(d, 'office') %></td><td><%= d.org_code %></td></tr>
+      <% } %>
+    </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>
