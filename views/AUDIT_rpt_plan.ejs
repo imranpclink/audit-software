@@ -1,0 +1,13 @@
+<%- include('partials/AUDIT_print_head', { title: 'Annual Audit Plan', backLink: '/plans/' + plan.plan_id }) %>
+<h1><%= t('Annual Audit Plan') %> <%= digits(plan.plan_year) %></h1>
+<p style="text-align:center"><%= plan.plan_no %> · <%= st(plan.audit_level) %> · <%= st(plan.status) %></p>
+<table class="AUDIT_grid">
+  <tr><th>#</th><th><%= t('Month') %></th><th><%= t('Office') %></th><th><%= t('Audit type') %></th><th><%= t('Team') %></th></tr>
+  <% items.forEach((i, n) => { %><tr><td><%= digits(n + 1) %></td><td><%= digits(i.plan_month) %></td><td><%= nm(i, 'office') %> (<%= i.office_code %>)</td><td><%= nm(i, 'type') %></td><td><%= i.team_name || '' %></td></tr><% }) %>
+</table>
+<% const appr = history.find(h => h.action === 'APPROVED'); %>
+<div class="AUDIT_sign">
+  <div><%= lang === 'bn' ? 'প্রস্তুতকারী' : 'Prepared by' %><br><%= st('CAO') %></div>
+  <div><%= lang === 'bn' ? 'অনুমোদনকারী' : 'Approved by' %><br><%= t('Executive Director') %><% if (appr) { %><br><span class="AUDIT_small"><%= date(appr.acted_at) %></span><% } %></div>
+</div>
+<%- include('partials/AUDIT_print_foot') %>

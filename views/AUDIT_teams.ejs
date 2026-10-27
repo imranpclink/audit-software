@@ -1,0 +1,26 @@
+<%- include('partials/AUDIT_head', { title: 'Audit Teams' }) %>
+<h1><%= t('Audit Teams') %></h1>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th>Code</th><th><%= t('Team') %></th><th><%= t('Audit level') %></th><th><%= t('Team leader') %></th><th><%= t('Members') %></th></tr>
+  <% for (const tm of teams) { const lead = tm.members.filter(m => m.member_role === 'LEADER'); const rest = tm.members.filter(m => m.member_role !== 'LEADER'); %>
+  <tr><td><%= tm.team_code %></td><td><%= tm.name %></td><td><%= st(tm.audit_level) %></td>
+    <td><%= lead.map(m => `${nm(m)} (${m.designation})`).join(', ') %></td><td><%= rest.map(m => `${nm(m)} (${m.designation})`).join(', ') %></td></tr>
+  <% } %>
+</table>
+</div>
+<% if (canPlan) { %>
+<div class="AUDIT_panel">
+  <h3><%= lang === 'bn' ? 'নতুন টিম' : 'New team' %></h3>
+  <form method="post" action="/teams">
+    <div class="AUDIT_row">
+      <div class="AUDIT_field"><label><%= t('Name') %></label><input type="text" name="name" required></div>
+      <div class="AUDIT_field"><label><%= t('Team leader') %></label><select name="leader"><% for (const e of staff) { %><option value="<%= e.emp_id %>"><%= nm(e) %> · <%= e.designation %></option><% } %></select></div>
+    </div>
+    <label><%= t('Members') %></label>
+    <div class="AUDIT_row" style="margin-bottom:10px"><% for (const e of staff) { %><label class="AUDIT_check"><input type="checkbox" name="members" value="<%= e.emp_id %>"> <%= nm(e) %> · <%= e.designation %></label><% } %></div>
+    <button class="AUDIT_btn"><%= t('Save') %></button>
+  </form>
+</div>
+<% } %>
+<%- include('partials/AUDIT_foot') %>

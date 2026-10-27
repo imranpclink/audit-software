@@ -1,0 +1,8 @@
+<%- include('partials/AUDIT_head', { title: 'History' }) %>
+<p><a href="/setup?tab=indicators">← <%= t('Indicators and PKSF Standards') %></a></p>
+<h1><%= rows[0] ? nm(rows[0]) : '' %> · <%= t('History') %></h1>
+<div class="AUDIT_panel"><table class="AUDIT_grid">
+  <tr><th>Effective from</th><th>Effective to</th><th>Source</th><th class="AUDIT_num">Min</th><th class="AUDIT_num">Max</th><th class="AUDIT_num">Tolerance %</th><th>Changed by</th><th>Changed at</th></tr>
+  <% for (const r of rows) { %><tr><td><%= date(r.effective_from) %></td><td><%= r.effective_to ? date(r.effective_to) : (lang === 'bn' ? 'চলমান' : 'current') %></td><td><%= r.std_source %></td><td class="AUDIT_num"><%= num(r.std_min) %></td><td class="AUDIT_num"><%= num(r.std_max) %></td><td class="AUDIT_num"><%= num(r.tolerance_pct) %></td><td><%= r.username || (lang === 'bn' ? 'প্রাথমিক মান' : 'default load') %></td><td><%= r.changed_at ? date(r.changed_at) : '' %></td></tr><% } %>
+</table></div>
+<%- include('partials/AUDIT_foot') %>

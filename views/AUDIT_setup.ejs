@@ -1,0 +1,191 @@
+<%- include('partials/AUDIT_head', { title: 'Audit Setup' }) %>
+<h1><%= t('Audit Setup') %></h1>
+<p class="AUDIT_muted"><%= nm(org) %> · <%= org.data_source === 'ERP' ? (lang === 'bn' ? 'অফিস, কর্মী ও শাখার তথ্য ইআরপি থেকে আসে' : 'Offices, staff and branch figures come from the ERP') : (lang === 'bn' ? 'তথ্য হাতে এন্ট্রি করা হয়' : 'Data is entered by hand') %>
+<% if (!canEdit) { %> · <%= lang === 'bn' ? 'শুধু দেখার জন্য; পরিবর্তন করতে পারেন সংস্থার অ্যাডমিন' : 'View only; the organization admin can change these' %><% } %></p>
+<nav class="AUDIT_tabs">
+  <% for (const [k, l] of [['indicators','Indicators and PKSF Standards'],['policy','Approval Policy'],['risks','Risk Levels'],['checkpoints','Audit Areas and Checkpoints'],['types','Audit Types'],['levels','Audit Levels'],['offices','Offices'],['employees','Employees'],['users','Users']]) { %>
+  <a class="<%= tab === k ? 'AUDIT_on' : '' %>" href="?tab=<%= k %>"><%= t(l) %></a>
+  <% } %>
+</nav>
+
+<% if (tab === 'indicators') { %>
+<div class="AUDIT_info"><%= lang === 'bn' ? 'সূচক ও মানদণ্ড প্রতিষ্ঠানভিত্তিক। পরিবর্তন করলে নতুন সারি তৈরি হয়, তাই পুরোনো অডিট রিপোর্টে তখনকার মানদণ্ডই থাকে। মানদণ্ডের বাইরে সহনসীমা (%) পর্যন্ত মধ্যম ঝুঁকি, তার বেশি উচ্চ ঝুঁকি।' : 'Indicators and standards are kept per organization. An edit creates a new row from its effective date, so earlier audit reports keep the standard that applied then. Outside the standard by up to the tolerance % is Medium risk; beyond that is High.' %></div>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Indicator') %></th><th>Group</th><th>Unit</th><th>Source</th><th class="AUDIT_num">Min</th><th class="AUDIT_num">Max</th><th class="AUDIT_num">Tolerance %</th><th>Effective from</th><th></th></tr>
+  <% for (const r of rows) { %>
+  <tr>
+    <td><%= nm(r) %><div class="AUDIT_muted AUDIT_small"><%= r.code %></div></td><td><%= r.grp %></td><td><%= r.unit %></td><td><%= r.std_source %></td>
+    <% if (canEdit) { %>
+    <td colspan="5">
+      <form method="post" action="/setup/indicators" class="AUDIT_actions">
+        <input type="hidden" name="ind_id" value="<%= r.ind_id %>">
+        <% for (const f of ['code','name_en','name_bn','grp','unit','std_source','report_order']) { %><input type="hidden" name="<%= f %>" value="<%= r[f] %>"><% } %>
+        <input type="hidden" name="show_in_report" value="1">
+        <input type="number" step="any" name="std_min" value="<%= r.std_min ?? '' %>" style="width:80px" title="Min">
+        <input type="number" step="any" name="std_max" value="<%= r.std_max ?? '' %>" style="width:80px" title="Max">
+        <input type="number" step="any" name="tolerance_pct" value="<%= r.tolerance_pct %>" style="width:70px" title="Tolerance %">
+        <input type="date" name="effective_from" required title="Effective from (must be after <%= r.effective_from %>)" style="width:150px">
+        <button class="AUDIT_btn AUDIT_sm"><%= t('Save') %></button>
+        <span class="AUDIT_muted AUDIT_small">now from <%= date(r.effective_from) %></span>
+      </form>
+    </td>
+    <% } else { %>
+    <td class="AUDIT_num"><%= num(r.std_min) %></td><td class="AUDIT_num"><%= num(r.std_max) %></td><td class="AUDIT_num"><%= num(r.tolerance_pct) %></td><td><%= date(r.effective_from) %></td>
+    <% } %>
+    <td><a href="/setup/indicators/<%= r.code %>/history"><%= t('History') %></a></td>
+  </tr>
+  <% } %>
+</table>
+</div>
+<% if (canEdit) { %>
+<div class="AUDIT_panel">
+  <h3><%= t('Add') %> <%= t('Indicator') %></h3>
+  <form method="post" action="/setup/indicators">
+    <div class="AUDIT_row">
+      <div class="AUDIT_field"><label>Code</label><input type="text" name="code" required></div>
+      <div class="AUDIT_field"><label>Name (English)</label><input type="text" name="name_en" required></div>
+      <div class="AUDIT_field"><label>নাম (বাংলা)</label><input type="text" name="name_bn" required></div>
+      <div class="AUDIT_field"><label>Group</label><select name="grp"><option>Productivity</option><option>Portfolio quality</option><option>Financial leverage</option><option>Others</option></select></div>
+      <div class="AUDIT_field"><label>Unit</label><select name="unit"><option>NUMBER</option><option>PCT</option><option>RATIO</option></select></div>
+      <div class="AUDIT_field"><label>Source</label><select name="std_source"><option>PKSF</option><option>MRA</option><option>OWN</option><option>DONOR</option></select></div>
+      <div class="AUDIT_field"><label>Min</label><input type="number" step="any" name="std_min"></div>
+      <div class="AUDIT_field"><label>Max</label><input type="number" step="any" name="std_max"></div>
+      <div class="AUDIT_field"><label>Tolerance %</label><input type="number" step="any" name="tolerance_pct" value="10"></div>
+      <div class="AUDIT_field"><label>Effective from</label><input type="date" name="effective_from"></div>
+    </div>
+    <input type="hidden" name="show_in_report" value="1">
+    <button class="AUDIT_btn"><%= t('Add') %></button>
+  </form>
+</div>
+<% } %>
+<% } %>
+
+<% if (tab === 'policy') { %>
+<div class="AUDIT_info"><%= lang === 'bn' ? 'অনুমোদন প্রয়োজন না হলে আইটেমটি স্বয়ংক্রিয়ভাবে অনুমোদিত হয়। "সরাসরি তত্ত্বাবধায়ক" মানে অফিস কাঠামোয় পরবর্তী উচ্চ অফিসের ব্যবস্থাপক (প্রধান কার্যালয়ে নির্বাহী পরিচালক)।' : 'When approval is not required the item is auto-approved. "Direct supervisor" is the manager of the next office up the tree (the ED at head office).' %></div>
+<div class="AUDIT_panel">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Item') %></th><th><%= t('Audit level') %></th><th><%= lang === 'bn' ? 'অনুমোদন লাগবে' : 'Approval required' %></th><th><%= lang === 'bn' ? 'অনুমোদনকারী' : 'Approver' %></th><th></th></tr>
+  <% for (const p of rows) { %>
+  <tr>
+    <td><%= st(p.applies_to) %></td><td><%= st(p.audit_level) %></td>
+    <% if (canEdit) { %>
+    <td colspan="3"><form method="post" action="/setup/policy/<%= p.policy_id %>" class="AUDIT_actions">
+      <select name="required" style="width:110px"><option value="1" <%= p.required ? 'selected' : '' %>><%= t('Yes') %></option><option value="0" <%= p.required ? '' : 'selected' %>><%= t('No') %></option></select>
+      <select name="approver" style="width:220px"><% for (const k of ['ED','CAO','SUPERVISOR','NONE']) { %><option value="<%= k %>" <%= p.approver === k ? 'selected' : '' %>><%= k === 'SUPERVISOR' ? (lang === 'bn' ? 'সরাসরি তত্ত্বাবধায়ক' : 'Direct supervisor') : st(k) %></option><% } %></select>
+      <button class="AUDIT_btn AUDIT_sm"><%= t('Save') %></button></form></td>
+    <% } else { %>
+    <td><%= p.required ? t('Yes') : t('No') %></td><td><%= p.approver === 'SUPERVISOR' ? (lang === 'bn' ? 'সরাসরি তত্ত্বাবধায়ক' : 'Direct supervisor') : st(p.approver) %></td><td></td>
+    <% } %>
+  </tr>
+  <% } %>
+</table>
+</div>
+<% } %>
+
+<% if (tab === 'risks') { %>
+<div class="AUDIT_panel">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Risk level') %></th><th class="AUDIT_num">Score</th><th><%= lang === 'bn' ? 'জবাবের সময় (কার্যদিবস)' : 'Reply days (working days)' %></th><th>Colour</th><th><%= lang === 'bn' ? 'নির্বাহী পরিচালকের নজর' : 'Needs ED attention' %></th><th></th></tr>
+  <% for (const r of rows) { %>
+  <tr><td><%- riskBadge(r.risk_code) %></td><td class="AUDIT_num"><%= digits(r.score) %></td>
+    <% if (canEdit) { %>
+    <td colspan="4"><form method="post" action="/setup/risks/<%= r.risk_code %>" class="AUDIT_actions">
+      <input type="number" name="reply_days" value="<%= r.reply_days %>" min="1" style="width:80px">
+      <input type="text" name="colour" value="<%= r.colour %>" style="width:100px">
+      <label class="AUDIT_check"><input type="checkbox" name="needs_ed" value="1" <%= r.needs_ed ? 'checked' : '' %>> <%= t('Yes') %></label>
+      <button class="AUDIT_btn AUDIT_sm"><%= t('Save') %></button></form></td>
+    <% } else { %><td><%= digits(r.reply_days) %></td><td><%= r.colour %></td><td><%= r.needs_ed ? t('Yes') : t('No') %></td><td></td><% } %>
+  </tr>
+  <% } %>
+</table>
+<p class="AUDIT_muted AUDIT_small"><%= lang === 'bn' ? 'জবাবের শেষ তারিখ = রিপোর্ট প্রেরণের তারিখ + কার্যদিবস (শুক্র ও শনিবার বাদে)।' : 'Reply deadline = report release date + these working days (Friday and Saturday skipped).' %></p>
+</div>
+<% } %>
+
+<% if (tab === 'checkpoints') { %>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th>#</th><th><%= t('Area') %></th><th><%= lang === 'bn' ? 'যাচাই প্রশ্ন' : 'Checkpoint' %></th><th><%= t('Risk') %></th><th><%= t('Status') %></th></tr>
+  <% for (const ar of areas) { const list = rows.filter(c => c.area_id === ar.area_id); list.forEach((c, i) => { %>
+  <tr><td><%= i === 0 ? digits(ar.serial) : '' %></td><td><%= i === 0 ? nm(ar) : '' %></td><td><%= lang === 'bn' ? c.question_bn : c.question_en %></td><td><%- riskBadge(c.default_risk) %></td>
+    <td><% if (canEdit) { %><form method="post" action="/setup/checkpoints/<%= c.cp_id %>/toggle"><button class="AUDIT_btn AUDIT_ghost AUDIT_sm"><%= c.active ? 'Active' : 'Inactive' %></button></form><% } else { %><%= c.active ? 'Active' : 'Inactive' %><% } %></td></tr>
+  <% }) } %>
+</table>
+</div>
+<% if (canEdit) { %>
+<div class="AUDIT_panel"><h3><%= t('Add') %></h3>
+<form method="post" action="/setup/checkpoints"><div class="AUDIT_row">
+  <div class="AUDIT_field"><label><%= t('Area') %></label><select name="area_id"><% for (const ar of areas) { %><option value="<%= ar.area_id %>"><%= digits(ar.serial) %>. <%= nm(ar) %></option><% } %></select></div>
+  <div class="AUDIT_field"><label>Question (English)</label><input type="text" name="question_en" required></div>
+  <div class="AUDIT_field"><label>প্রশ্ন (বাংলা)</label><input type="text" name="question_bn" required></div>
+  <div class="AUDIT_field"><label><%= t('Risk') %></label><select name="default_risk"><% for (const k of Object.keys(risks)) { %><option value="<%= k %>"><%= st(k) %></option><% } %></select></div>
+</div><button class="AUDIT_btn"><%= t('Add') %></button></form></div>
+<% } %>
+<% } %>
+
+<% if (tab === 'types') { %>
+<div class="AUDIT_panel"><table class="AUDIT_grid">
+  <tr><th>Code</th><th><%= t('Audit type') %></th><th class="AUDIT_num"><%= lang === 'bn' ? 'দিন' : 'Default days' %></th><th><%= lang === 'bn' ? 'পূর্ণ চেকলিস্ট' : 'Full checklist' %></th></tr>
+  <% for (const r of rows) { %><tr><td><%= r.code %></td><td><%= nm(r) %></td><td class="AUDIT_num"><%= digits(r.default_days) %></td><td><%= r.full_checklist ? t('Yes') : t('No') %></td></tr><% } %>
+</table></div>
+<% } %>
+
+<% if (tab === 'levels') { %>
+<div class="AUDIT_panel"><table class="AUDIT_grid">
+  <tr><th><%= t('Audit level') %></th><th><%= lang === 'bn' ? 'যেসব অফিস অডিট করতে পারে' : 'Can audit offices' %></th><th class="AUDIT_num"><%= lang === 'bn' ? 'মাসে সর্বোচ্চ' : 'Max per month' %></th></tr>
+  <% for (const r of rows) { %><tr><td><%= nm(r) %></td><td><%= r.can_audit.split(',').map(st).join(', ') %></td><td class="AUDIT_num"><%= digits(r.max_per_month) %></td></tr><% } %>
+</table></div>
+<% } %>
+
+<% if (tab === 'offices') { %>
+<div class="AUDIT_panel AUDIT_scroll"><table class="AUDIT_grid">
+  <tr><th>Code</th><th><%= t('Office') %></th><th><%= lang === 'bn' ? 'স্তর' : 'Level' %></th><th><%= lang === 'bn' ? 'ঊর্ধ্বতন অফিস' : 'Parent' %></th><th><%= lang === 'bn' ? 'চালুর তারিখ' : 'Opened' %></th><th><%= t('Risk rating') %></th><th>Source</th></tr>
+  <% for (const r of rows) { %><tr><td><%= r.office_code %></td><td><%= nm(r) %></td><td><%= st(r.office_level) %></td><td><%= nm(r, 'parent') %></td><td><%= date(r.open_date) %></td><td><%- r.office_level === 'BRANCH' ? riskBadge(r.risk_rating) : '' %></td><td><%= r.data_source %></td></tr><% } %>
+</table></div>
+<% if (canEdit) { %>
+<div class="AUDIT_panel"><h3><%= t('Add') %> <%= t('Office') %></h3>
+<form method="post" action="/setup/offices"><div class="AUDIT_row">
+  <div class="AUDIT_field"><label>Code</label><input type="text" name="office_code" required></div>
+  <div class="AUDIT_field"><label>Name (English)</label><input type="text" name="name_en" required></div>
+  <div class="AUDIT_field"><label>নাম (বাংলা)</label><input type="text" name="name_bn" required></div>
+  <div class="AUDIT_field"><label>Level</label><select name="office_level"><% for (const k of ['DIVISION','ZONE','AREA','BRANCH']) { %><option value="<%= k %>"><%= st(k) %></option><% } %></select></div>
+  <div class="AUDIT_field"><label>Parent</label><select name="parent_id"><% for (const r of rows.filter(o => o.office_level !== 'BRANCH')) { %><option value="<%= r.office_id %>"><%= nm(r) %></option><% } %></select></div>
+  <div class="AUDIT_field"><label>Opened</label><input type="date" name="open_date"></div>
+</div><button class="AUDIT_btn"><%= t('Add') %></button></form></div>
+<% } %>
+<% } %>
+
+<% if (tab === 'employees') { %>
+<div class="AUDIT_panel AUDIT_scroll"><table class="AUDIT_grid">
+  <tr><th><%= t('PIN') %></th><th><%= t('Name') %></th><th><%= t('Designation') %></th><th><%= t('Office') %></th><th><%= t('Username') %></th><th>Source</th></tr>
+  <% for (const r of rows) { %><tr><td><%= digits(r.pin) %></td><td><%= nm(r) %></td><td><%= r.designation %></td><td><%= nm(r, 'office') %></td><td><%= r.username || '' %></td><td><%= r.data_source %></td></tr><% } %>
+</table></div>
+<% if (canEdit) { %>
+<div class="AUDIT_panel"><h3><%= t('Add') %> <%= t('Employees') %></h3>
+<form method="post" action="/setup/employees"><div class="AUDIT_row">
+  <div class="AUDIT_field"><label><%= t('PIN') %></label><input type="text" name="pin" required></div>
+  <div class="AUDIT_field"><label>Name (English)</label><input type="text" name="name_en" required></div>
+  <div class="AUDIT_field"><label>নাম (বাংলা)</label><input type="text" name="name_bn" required></div>
+  <div class="AUDIT_field"><label><%= t('Designation') %></label><input type="text" name="designation" required></div>
+  <div class="AUDIT_field"><label><%= t('Office') %></label><select name="office_id"><% for (const o of offices) { %><option value="<%= o.office_id %>"><%= nm(o) %></option><% } %></select></div>
+</div><button class="AUDIT_btn"><%= t('Add') %></button></form></div>
+<% } %>
+<% } %>
+
+<% if (tab === 'users') { %>
+<div class="AUDIT_panel AUDIT_scroll"><table class="AUDIT_grid">
+  <tr><th><%= t('Username') %></th><th><%= t('Name') %></th><th><%= lang === 'bn' ? 'ইউজার টাইপ' : 'User type' %></th><th><%= t('Role') %></th><th><%= t('Office') %></th></tr>
+  <% for (const u of users) { %><tr><td><%= u.username %></td><td><%= u.name_en ? nm(u) : '' %></td><td><%= u.user_type %></td><td><%= st(u.role) %></td><td><%= nm(u, 'office') %></td></tr><% } %>
+</table></div>
+<% if (canEdit) { %>
+<div class="AUDIT_panel"><h3><%= t('Add') %> <%= t('Users') %></h3>
+<form method="post" action="/setup/users"><div class="AUDIT_row">
+  <div class="AUDIT_field"><label><%= t('Employees') %></label><select name="emp_id"><% for (const e of rows.filter(r => !r.username)) { %><option value="<%= e.emp_id %>"><%= nm(e) %> · <%= e.designation %> · <%= nm(e, 'office') %></option><% } %></select></div>
+  <div class="AUDIT_field"><label><%= t('Username') %></label><input type="text" name="username" required></div>
+  <div class="AUDIT_field"><label><%= t('Password') %></label><input type="password" name="password" required></div>
+  <div class="AUDIT_field"><label><%= t('Role') %></label><select name="role"><% for (const k of ['ED','CAO','AUDITOR','DM','ZM','AM','BM','STAFF']) { %><option value="<%= k %>"><%= st(k) %></option><% } %></select></div>
+</div><button class="AUDIT_btn"><%= t('Add') %></button></form></div>
+<% } %>
+<% } %>
+<%- include('partials/AUDIT_foot') %>

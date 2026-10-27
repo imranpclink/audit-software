@@ -1,0 +1,15 @@
+<%- include('partials/AUDIT_print_head', { title: 'Branch Ratio vs PKSF Standard' }) %>
+<h1><%= t('Branch Ratio vs PKSF Standard') %></h1>
+<p style="text-align:center"><%= lang === 'bn' ? 'তারিখ' : 'As on' %> <%= date(asOn) %></p>
+<div class="AUDIT_scroll">
+<table class="AUDIT_grid AUDIT_small">
+  <tr><th><%= t('Branch') %></th><th><%= t('Risk rating') %></th><th><%= t('Last audit') %></th>
+    <% for (const ind of indicators) { %><th class="AUDIT_num" title="<%= nm(ind) %>"><%= nm(ind) %><br><span class="AUDIT_muted"><%= ind.std_min !== null ? '≥' + num(ind.std_min) : '' %> <%= ind.std_max !== null ? '≤' + num(ind.std_max) : '' %></span></th><% } %></tr>
+  <% for (const b of branches) { %>
+  <tr><td><%= nm(b) %></td><td><%= st(b.risk_rating) %></td><td class="AUDIT_nowrap"><%= b.last_audit ? date(b.last_audit) : t('Never audited') %></td>
+    <% for (const ind of indicators) { const v = b.values[ind.code]; %><td class="AUDIT_num" style="<%= v && v.risk === 'HIGH' ? 'background:#fdeceb;color:#b3261e;font-weight:600' : v && v.risk === 'MEDIUM' ? 'background:#fff4e0' : '' %>"><%= v ? num(v.value) : '—' %></td><% } %></tr>
+  <% } %>
+</table>
+</div>
+<p class="AUDIT_small"><%= lang === 'bn' ? 'লাল = উচ্চ ঝুঁকি, হলুদ = মধ্যম ঝুঁকি (মানদণ্ডের বাইরে সহনসীমার মধ্যে)।' : 'Red = high risk, amber = medium risk (outside the standard but within tolerance).' %></p>
+<%- include('partials/AUDIT_print_foot') %>

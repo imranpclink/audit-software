@@ -1,0 +1,122 @@
+<%- include('partials/AUDIT_head', { title: 'Observation' }) %>
+<div class="AUDIT_pagehead">
+  <div>
+    <div class="AUDIT_muted"><a href="/audits/<%= a.audit_id %>?tab=observations"><%= a.audit_no %></a> · <%= nm(a, 'office') %></div>
+    <h1><%= b.obs_no %> · <%= b.title %></h1>
+    <div class="AUDIT_actions"><%- badge(b.status) %> <%- riskBadge(b.risk_code) %>
+      <% if (b.confidential) { %><span class="AUDIT_flag" style="color:#8e0000"><%= t('Confidential') %></span><% } %>
+      <% if (b.is_financial) { %><span class="AUDIT_flag"><%= t('Financial irregularity') %></span><% } %>
+      <% if (b.show_cause) { %><span class="AUDIT_flag"><%= t('Include in show-cause letter') %></span><% } %>
+      <% if (b.overdue) { %><span class="AUDIT_overdue"><%= t('Overdue') %></span><% } %>
+    </div>
+  </div>
+</div>
+
+<div class="AUDIT_two">
+  <div>
+    <div class="AUDIT_panel">
+      <% if (carriedFrom) { %><div class="AUDIT_info"><%= lang === 'bn' ? 'পূর্ববর্তী অডিট থেকে স্থানান্তরিত:' : 'Carried forward from' %> <a href="/observations/<%= carriedFrom.obs_id %>"><%= carriedFrom.obs_no %></a></div><% } %>
+      <dl class="AUDIT_kv">
+        <dt><%= t('Area') %></dt><dd><%= nm(b, 'area') %></dd>
+        <dt><%= t('Observation details') %></dt><dd class="AUDIT_pre"><%= b.details %></dd>
+        <% if (b.auditor_comment) { %><dt><%= t('Auditor comment') %></dt><dd class="AUDIT_pre"><%= b.auditor_comment %></dd><% } %>
+        <% if (b.recommendation) { %><dt><%= t('Recommendation') %></dt><dd class="AUDIT_pre"><%= b.recommendation %></dd><% } %>
+        <% if (b.amount) { %><dt><%= t('Amount involved') %></dt><dd>৳<%= money(b.amount) %> · <%= t('Recovered') %> ৳<%= money(b.recovered) %> · <%= t('Balance') %> <b>৳<%= money(Math.max(0, b.amount - b.recovered)) %></b></dd><% } %>
+        <% if (b.corrected_on_spot) { %><dt><%= t('Corrected on the spot') %></dt><dd><%= b.correction_note %></dd><% } %>
+        <dt><%= t('Deadline') %></dt><dd><%= date(b.deadline) || '—' %></dd>
+        <dt><%= t('Responsible persons') %></dt>
+        <dd><% for (const p of b.persons) { %><div><%= nm(p) %> (<%= digits(p.pin) %>), <%= p.designation %> · <%= st(p.person_role) %></div><% } %><% if (!b.persons.length) { %>—<% } %></dd>
+      </dl>
+    </div>
+
+    <% if (can.respond) { %>
+    <div class="AUDIT_panel" id="reply">
+      <h3><%= t('Reply') %></h3>
+      <form method="post" action="/observations/<%= b.obs_id %>/respond">
+        <div class="AUDIT_row">
+          <div class="AUDIT_field"><label><%= t('Response type') %></label>
+            <select name="response_type"><% for (const k of ['EXPLANATION','ACTION_TAKEN','DISAGREE','MORE_TIME']) { %><option value="<%= k %>"><%= st(k) %></option><% } %></select></div>
+          <% if (b.is_financial) { %><div class="AUDIT_field"><label><%= t('Amount recovered / deposited') %></label><input type="number" step="0.01" min="0" name="amount_recovered"></div><% } %>
+          <div class="AUDIT_field"><label><%= t('Proposed completion date') %></label><input type="date" name="new_deadline"></div>
+        </div>
+        <div class="AUDIT_field"><label><%= t('Reply') %> *</label><textarea name="text" required></textarea></div>
+        <div class="AUDIT_field"><label><%= t('Corrective action taken') %></label><textarea name="action_taken"></textarea></div>
+        <button class="AUDIT_btn"><%= t('Submit') %></button>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (can.verify) { %>
+    <div class="AUDIT_panel">
+      <h3><%= t('Verify reply') %></h3>
+      <form method="post" action="/observations/<%= b.obs_id %>/verify">
+        <div class="AUDIT_row">
+          <div class="AUDIT_field"><label><%= t('Action') %></label>
+            <select name="decision"><option value="ACCEPT"><%= t('Accept') %></option><option value="PARTLY"><%= t('Partly resolved') %></option><option value="REISSUE"><%= t('Reissue') %></option></select></div>
+          <div class="AUDIT_field"><label><%= t('New deadline') %> (<%= t('Partly') %> / <%= t('Reissue') %>)</label><input type="date" name="new_deadline"></div>
+        </div>
+        <div class="AUDIT_field"><label><%= t('Comment') %> *</label><textarea name="text" required></textarea></div>
+        <button class="AUDIT_btn"><%= t('Save') %></button>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (can.supervise) { %>
+    <div class="AUDIT_panel">
+      <h3><%= t('Supervisor comment') %></h3>
+      <form method="post" action="/observations/<%= b.obs_id %>/supervisor">
+        <div class="AUDIT_field"><textarea name="text" required></textarea></div>
+        <button class="AUDIT_btn AUDIT_ghost"><%= t('Comment') %></button>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (can.recovery) { %>
+    <div class="AUDIT_panel">
+      <h3><%= t('Recovery') %></h3>
+      <% if (recoveries.length) { %>
+      <table class="AUDIT_grid"><tr><th><%= t('Date') %></th><th class="AUDIT_num"><%= t('Amount') %></th><th>Mode</th><th>Voucher</th></tr>
+        <% for (const r of recoveries) { %><tr><td><%= date(r.rec_date) %></td><td class="AUDIT_num"><%= money(r.amount) %></td><td><%= r.mode %></td><td><%= r.voucher_no %></td></tr><% } %>
+      </table><% } %>
+      <form method="post" action="/observations/<%= b.obs_id %>/recovery" style="margin-top:10px">
+        <div class="AUDIT_row">
+          <div class="AUDIT_field"><label><%= t('Date') %></label><input type="date" name="rec_date"></div>
+          <div class="AUDIT_field"><label><%= t('Amount') %></label><input type="number" step="0.01" min="0" name="amount" required></div>
+          <div class="AUDIT_field"><label>Mode</label><select name="mode"><option>CASH</option><option>SALARY_DEDUCTION</option><option>PF_ADJUSTMENT</option><option>GUARANTOR</option></select></div>
+          <div class="AUDIT_field"><label>Voucher no.</label><input type="text" name="voucher_no"></div>
+        </div>
+        <button class="AUDIT_btn AUDIT_ghost"><%= t('Add') %></button>
+      </form>
+    </div>
+    <% } %>
+
+    <% if (can.close) { %>
+    <div class="AUDIT_panel">
+      <h3><%= t('Close observation') %></h3>
+      <% if (b.is_financial && b.recovered < b.amount) { %><div class="AUDIT_note"><%= lang === 'bn' ? 'সম্পূর্ণ টাকা আদায় না হওয়া পর্যন্ত আর্থিক পর্যবেক্ষণ নিষ্পত্তি করা যাবে না।' : 'A financial observation can close only when the full amount is recovered.' %></div><% } %>
+      <form method="post" action="/observations/<%= b.obs_id %>/close">
+        <div class="AUDIT_field"><label><%= t('Comment') %></label><input type="text" name="text"></div>
+        <button class="AUDIT_btn"><%= t('Close observation') %></button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="AUDIT_panel">
+    <h3><%= t('Discussion history') %></h3>
+    <% if (!history.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } %>
+    <ul class="AUDIT_thread">
+      <% for (const h of history) { %>
+      <li>
+        <div class="AUDIT_meta"><%- badge(h.kind === 'PARTLY' ? 'PARTLY' : h.kind) %> <b><%= h.name_en ? nm(h) : h.username %></b> · <%= h.designation || st(h.role) %> · <%= date(h.created_at) %></div>
+        <% if (h.response_type) { %><div class="AUDIT_small AUDIT_muted"><%= st(h.response_type) %></div><% } %>
+        <div class="AUDIT_pre"><%= h.text %></div>
+        <% if (h.action_taken) { %><div class="AUDIT_small"><b><%= t('Corrective action taken') %>:</b> <%= h.action_taken %></div><% } %>
+        <% if (h.amount_recovered) { %><div class="AUDIT_small"><b><%= t('Amount recovered / deposited') %>:</b> ৳<%= money(h.amount_recovered) %></div><% } %>
+        <% if (h.new_deadline) { %><div class="AUDIT_small"><b><%= t('New deadline') %>:</b> <%= date(h.new_deadline) %></div><% } %>
+      </li>
+      <% } %>
+    </ul>
+  </div>
+</div>
+<%- include('partials/AUDIT_foot') %>

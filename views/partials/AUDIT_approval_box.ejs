@@ -1,0 +1,14 @@
+<% if (approval) { %>
+<div class="AUDIT_panel" style="border-color:#e0a100;background:#fffaf0">
+  <h3><%= t('Approval Inbox') %>: <%= st(approval.item_type) %></h3>
+  <p class="AUDIT_muted"><%= lang === 'bn' ? 'নিচের তথ্য দেখে সিদ্ধান্ত দিন। ফেরত বা বাতিল করলে মন্তব্য লিখুন।' : 'Review the details below, then decide. Write a comment when you return or reject.' %></p>
+  <form method="post" action="/approvals/<%= approval.appr_id %>">
+    <div class="AUDIT_field"><label><%= t('Comment') %></label><textarea name="comment"></textarea></div>
+    <div class="AUDIT_actions">
+      <button class="AUDIT_btn" name="action" value="APPROVED"><%= t('Approve') %></button>
+      <button class="AUDIT_btn AUDIT_ghost" name="action" value="RETURNED"><%= t('Return') %></button>
+      <button class="AUDIT_btn AUDIT_danger" name="action" value="REJECTED"><%= t('Reject') %></button>
+    </div>
+  </form>
+</div>
+<% } %>

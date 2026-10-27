@@ -1,0 +1,25 @@
+<%- include('partials/AUDIT_print_head', { title: 'Audit Order Letter', backLink: '/audits/' + a.audit_id }) %>
+<% const bn = lang === 'bn'; %>
+<div style="display:flex;justify-content:space-between"><div><%= t('Memo no.') %>: <%= a.memo_no %></div><div><%= t('Date') %>: <%= date(letterDate) %></div></div>
+<p style="margin-top:20px"><%= bn ? 'বরাবর' : 'To' %>,<br><%= st('BM') %><br><%= nm(a, 'office') %><% if (chain.AREA) { %>, <%= nm(chain.AREA) %><% } %></p>
+<p><b><%= t('Subject') %>: <%= bn ? `${nm(a, 'office')} এর অভ্যন্তরীণ অডিট প্রসঙ্গে।` : `Internal audit of ${nm(a, 'office')}.` %></b></p>
+<p><%= bn
+  ? `সংস্থার অনুমোদিত অডিট পরিকল্পনা অনুযায়ী নিম্নবর্ণিত অডিট টিম আগামী ${date(a.start_date)} তারিখ হতে ${date(a.end_date)} তারিখ পর্যন্ত আপনার শাখার ${date(a.period_from)} হতে ${date(a.period_to)} পর্যন্ত সময়ের কার্যক্রম অডিট করবেন। অডিটের সময় সকল রেজিস্টার, নথিপত্র ও হিসাব প্রস্তুত রাখতে এবং অডিট টিমকে সার্বিক সহযোগিতা করার জন্য নির্দেশ দেওয়া হলো।`
+  : `As per the approved audit plan of the organization, the audit team below will audit the activities of your branch for the period ${date(a.period_from)} to ${date(a.period_to)}, from ${date(a.start_date)} to ${date(a.end_date)}. You are instructed to keep all registers, documents and accounts ready and to give the team full cooperation.` %></p>
+<% if (a.instruction) { %><p><b><%= t('Special instruction') %>:</b> <%= a.instruction %></p><% } %>
+<table class="AUDIT_grid" style="margin:14px 0">
+  <tr><th>#</th><th><%= t('Name') %></th><th><%= t('PIN') %></th><th><%= t('Designation') %></th><th><%= t('Role') %></th></tr>
+  <% team.forEach((m, i) => { %><tr><td><%= digits(i + 1) %></td><td><%= nm(m) %></td><td><%= digits(m.pin) %></td><td><%= m.designation %></td><td><%= st(m.member_role) %></td></tr><% }) %>
+</table>
+<% if (cao) { %><p><%= bn ? `অডিট কার্যক্রম তত্ত্বাবধান করবেন ${nm(cao)}, ${st('CAO')}।` : `The audit will be supervised by ${nm(cao)}, ${st('CAO')}.` %></p><% } %>
+<div style="margin-top:60px;width:260px;margin-left:auto;text-align:center;border-top:1px solid #1d2733;padding-top:6px">
+  <%= ed ? nm(ed) : '' %><br><%= t('Executive Director') %><br><%= nm(org) %>
+</div>
+<p style="margin-top:28px"><b><%= t('Copy to') %>:</b></p>
+<ol class="AUDIT_small">
+  <% for (const lvl of ['DIVISION','ZONE','AREA']) { if (chain[lvl]) { %><li><%= st({ DIVISION: 'DM', ZONE: 'ZM', AREA: 'AM' }[lvl]) %>, <%= nm(chain[lvl]) %></li><% } } %>
+  <li><%= st('CAO') %>, <%= t('Head Office') %></li>
+  <% team.forEach(m => { %><li><%= nm(m) %>, <%= m.designation %></li><% }) %>
+  <li><%= bn ? 'অফিস কপি' : 'Office copy' %></li>
+</ol>
+<%- include('partials/AUDIT_print_foot') %>

@@ -1,0 +1,17 @@
+<%- include('partials/AUDIT_head', { title: 'Audits' }) %>
+<div class="AUDIT_pagehead"><h1><%= t('Audits') %></h1><% if (canPlan) { %><a class="AUDIT_btn" href="/audits/new">+ <%= lang === 'bn' ? 'নতুন অডিট সূচি' : 'New audit schedule' %></a><% } %></div>
+<form class="AUDIT_actions" style="margin-bottom:12px">
+  <select name="status" style="width:220px" onchange="this.form.submit()"><option value=""><%= lang === 'bn' ? 'সব অবস্থা' : 'All statuses' %></option>
+  <% for (const s of ['DRAFT','PENDING_APPROVAL','RETURNED','APPROVED','IN_PROGRESS','SUBMITTED','REPORT_APPROVED','UNDER_RESPONSE','CLOSED']) { %><option value="<%= s %>" <%= query.status === s ? 'selected' : '' %>><%= st(s) %></option><% } %></select>
+</form>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!rows.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Audit no.') %></th><th><%= t('Office') %></th><th><%= t('Audit type') %></th><th><%= t('Audit level') %></th><th><%= t('Team') %></th><th><%= t('Start date') %></th><th><%= t('End date') %></th><th class="AUDIT_num"><%= t('Observations') %></th><th><%= t('Status') %></th></tr>
+  <% for (const a of rows) { %>
+  <tr><td class="AUDIT_nowrap"><a href="/audits/<%= a.audit_id %>"><%= a.audit_no %></a> <% if (a.plan_kind === 'SURPRISE') { %><%- badge('SURPRISE') %><% } %></td><td><%= nm(a, 'office') %></td><td><%= nm(a, 'type') %></td><td><%= st(a.audit_level) %></td><td><%= a.team_name %></td><td class="AUDIT_nowrap"><%= date(a.start_date) %></td><td class="AUDIT_nowrap"><%= date(a.end_date) %></td><td class="AUDIT_num"><%= digits(a.obs_count) %></td><td><%- badge(a.status) %></td></tr>
+  <% } %>
+</table>
+<% } %>
+</div>
+<%- include('partials/AUDIT_foot') %>

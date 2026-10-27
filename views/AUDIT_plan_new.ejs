@@ -1,0 +1,35 @@
+<%- include('partials/AUDIT_head', { title: 'Annual Audit Plan' }) %>
+<h1><%= lang === 'bn' ? 'নতুন অডিট পরিকল্পনা' : 'New audit plan' %> · <%= st(level) %></h1>
+<p class="AUDIT_muted"><%= lang === 'bn' ? 'প্রতিটি শাখার জন্য অডিটের মাস বেছে নিন (বছরে সর্বোচ্চ দুইবার)। সর্বশেষ অডিটের পর দিন ও ঝুঁকি মান দেখে বাছাই করুন।' : 'Pick the audit month for each office (up to twice a year). Use days since last audit and the risk rating to choose.' %></p>
+<form method="post" action="/plans">
+<div class="AUDIT_panel">
+  <div class="AUDIT_row">
+    <div class="AUDIT_field"><label><%= t('Plan year') %></label><input type="text" name="plan_year" value="<%= fyLabel %>" required></div>
+    <div class="AUDIT_field"><label><%= t('Period') %></label><select name="period"><option>YEARLY</option><option>HALF_YEARLY</option><option>QUARTERLY</option><option>MONTHLY</option></select></div>
+    <div class="AUDIT_field" style="grid-column: span 2"><label><%= t('Remarks') %></label><input type="text" name="remarks"></div>
+  </div>
+</div>
+<div class="AUDIT_panel AUDIT_scroll">
+<table class="AUDIT_grid">
+  <tr><th><%= t('Office') %></th><th><%= t('Last audit') %></th><th class="AUDIT_num"><%= t('Days since last audit') %></th><th><%= t('Risk rating') %></th><th><%= t('Month') %> 1</th><th><%= t('Month') %> 2</th><th><%= t('Audit type') %></th><th><%= t('Team') %></th></tr>
+  <% offices.forEach((o, i) => { %>
+  <tr>
+    <td><%= nm(o) %><div class="AUDIT_muted AUDIT_small"><%= o.office_code %> · <%= st(o.office_level) %></div><input type="hidden" name="rows[<%= i %>][office_id]" value="<%= o.office_id %>"></td>
+    <td><%= o.last_audit ? date(o.last_audit) : t('Never audited') %></td>
+    <td class="AUDIT_num <%= o.days_since > 300 ? 'AUDIT_overdue' : '' %>"><%= o.days_since === null ? '' : digits(o.days_since) %></td>
+    <td><%- o.office_level === 'BRANCH' ? riskBadge(o.risk_rating) : '' %></td>
+    <% for (const k of ['month1','month2']) { %>
+    <td><select name="rows[<%= i %>][<%= k %>]" style="min-width:110px"><option value="">—</option><% for (const m of months) { %><option value="<%= m %>"><%= digits(m) %></option><% } %></select></td>
+    <% } %>
+    <td><select name="rows[<%= i %>][type_id]"><% for (const ty of types) { %><option value="<%= ty.type_id %>"><%= nm(ty) %></option><% } %></select></td>
+    <td><select name="rows[<%= i %>][team_id]"><option value="">—</option><% for (const tm of teams) { %><option value="<%= tm.team_id %>"><%= tm.name %></option><% } %></select></td>
+  </tr>
+  <% }) %>
+</table>
+</div>
+<div class="AUDIT_actions">
+  <button class="AUDIT_btn AUDIT_ghost" name="draft" value="1"><%= t('Save draft') %></button>
+  <button class="AUDIT_btn" name="submit" value="1"><%= t('Submit for approval') %></button>
+</div>
+</form>
+<%- include('partials/AUDIT_foot') %>

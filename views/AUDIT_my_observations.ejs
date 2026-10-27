@@ -1,0 +1,23 @@
+<%- include('partials/AUDIT_head', { title: 'My Observations' }) %>
+<h1><%= t('My Observations') %></h1>
+<p class="AUDIT_muted"><%= lang === 'bn' ? 'আপনার নাম উল্লেখ থাকা বা আপনার শাখার পর্যবেক্ষণসমূহ।' : 'Observations that name you, or (for a Branch Manager) all observations of your branch.' %></p>
+<div class="AUDIT_panel AUDIT_scroll">
+<% if (!rows.length) { %><p class="AUDIT_muted"><%= t('Nothing here yet.') %></p><% } else { %>
+<table class="AUDIT_grid">
+  <tr><th><%= t('Observation') %></th><th><%= t('Title') %></th><th><%= t('Risk') %></th><th class="AUDIT_num"><%= t('Amount') %></th><th><%= t('Role') %></th><th><%= t('Deadline') %></th><th><%= t('Days left') %></th><th><%= t('Status') %></th><th></th></tr>
+  <% for (const b of rows) { const left = b.deadline ? Math.round((Date.parse(b.deadline) - Date.parse(new Date().toISOString().slice(0,10))) / 86400000) : null; const waiting = ['SENT','REISSUED','PARTLY'].includes(b.status); %>
+  <tr>
+    <td class="AUDIT_nowrap"><a href="/observations/<%= b.obs_id %>"><%= b.obs_no %></a></td>
+    <td><%= b.title %></td><td><%- riskBadge(b.risk_code) %></td>
+    <td class="AUDIT_num"><%= b.amount ? money(b.amount) : '' %></td>
+    <td><%= st(b.my_role) %></td>
+    <td class="AUDIT_nowrap"><%= date(b.deadline) %></td>
+    <td class="<%= waiting && left < 0 ? 'AUDIT_overdue' : '' %>"><%= waiting && left !== null ? (left < 0 ? `${t('Overdue')} ${digits(-left)}` : digits(left)) : '' %></td>
+    <td><%- badge(b.status) %></td>
+    <td><% if (waiting) { %><a class="AUDIT_btn AUDIT_sm" href="/observations/<%= b.obs_id %>#reply"><%= t('Reply') %></a><% } %></td>
+  </tr>
+  <% } %>
+</table>
+<% } %>
+</div>
+<%- include('partials/AUDIT_foot') %>

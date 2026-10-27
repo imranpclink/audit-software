@@ -1,0 +1,11 @@
+<% if (history.length) { %>
+<div class="AUDIT_panel">
+  <h3><%= t('Approval history') %></h3>
+  <table class="AUDIT_grid">
+    <tr><th><%= t('Item') %></th><th><%= t('Submitted by') %></th><th><%= t('Submitted on') %></th><th><%= lang === 'bn' ? 'অনুমোদনকারী' : 'Approver' %></th><th><%= t('Status') %></th><th><%= t('Comment') %></th><th><%= t('Date') %></th></tr>
+    <% for (const h of history) { %>
+    <tr><td><%= st(h.item_type) %></td><td><%= h.submitted_by_name %></td><td><%= date(h.submitted_at) %></td><td><%= h.approver_name || '—' %></td><td><%- badge(h.action) %></td><td><%= h.comment || '' %></td><td><%= date(h.acted_at) %></td></tr>
+    <% } %>
+  </table>
+</div>
+<% } %>

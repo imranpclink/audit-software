@@ -1,0 +1,28 @@
+<%- include('partials/AUDIT_head', { title: 'Audit Schedule' }) %>
+<h1><%= lang === 'bn' ? 'নতুন অডিট সূচি' : 'New audit schedule' %> · <%= st(level) %></h1>
+<form method="post" action="/audits">
+<% if (item) { %><input type="hidden" name="plan_item_id" value="<%= item.item_id %>"><div class="AUDIT_info"><%= lang === 'bn' ? 'অনুমোদিত বার্ষিক পরিকল্পনা থেকে' : 'From the approved annual plan' %>: <%= digits(item.plan_month) %></div><% } %>
+<div class="AUDIT_panel">
+  <div class="AUDIT_row">
+    <div class="AUDIT_field"><label><%= t('Office') %></label><select name="office_id" required><% for (const o of offices) { %><option value="<%= o.office_id %>" <%= item && item.office_id === o.office_id ? 'selected' : '' %>><%= nm(o) %> (<%= o.office_code %>)</option><% } %></select></div>
+    <div class="AUDIT_field"><label><%= t('Audit type') %></label><select name="type_id"><% for (const ty of types) { %><option value="<%= ty.type_id %>" <%= item && item.type_id === ty.type_id ? 'selected' : '' %>><%= nm(ty) %></option><% } %></select></div>
+    <div class="AUDIT_field"><label><%= t('Team') %></label><select name="team_id" required><% for (const tm of teams) { %><option value="<%= tm.team_id %>" <%= item && item.team_id === tm.team_id ? 'selected' : '' %>><%= tm.name %></option><% } %></select></div>
+    <div class="AUDIT_field"><label><%= t('Start date') %></label><input type="date" name="start_date" required value="<%= item ? item.plan_month + '-05' : '' %>"></div>
+    <div class="AUDIT_field"><label><%= t('End date') %></label><input type="date" name="end_date" required value="<%= item ? item.plan_month + '-11' : '' %>"></div>
+  </div>
+  <p class="AUDIT_muted AUDIT_small"><%= lang === 'bn' ? 'অডিটকাল স্বয়ংক্রিয়: সর্বশেষ অডিটের কাট-অফের পরদিন (নতুন শাখার ক্ষেত্রে চালুর তারিখ) থেকে শুরুর আগের মাসের শেষ দিন।' : 'Audit period is filled automatically: the day after the last audit cut-off (or the branch open date) to the month-end before the start date.' %></p>
+  <div class="AUDIT_row">
+    <div class="AUDIT_field"><label><%= t('Planned or surprise') %></label>
+      <select name="plan_kind" id="AUDIT_kind" onchange="document.getElementById('AUDIT_notify').style.display = this.value === 'SURPRISE' ? 'none' : ''">
+        <option value="PLANNED"><%= t('Planned') %></option><option value="SURPRISE"><%= t('Surprise') %></option></select></div>
+    <div class="AUDIT_field" id="AUDIT_notify"><label>&nbsp;</label><label class="AUDIT_check"><input type="checkbox" name="notify_branch" value="1" checked> <%= t('Notify branch') %></label></div>
+  </div>
+  <p class="AUDIT_muted AUDIT_small"><%= lang === 'bn' ? 'আকস্মিক অডিট শুরু না হওয়া পর্যন্ত শাখা ও এরিয়া/জোন দেখতে পাবে না।' : 'A surprise audit is hidden from the branch and its area/zone until the team starts it.' %></p>
+  <div class="AUDIT_field"><label><%= t('Special instruction') %></label><textarea name="instruction"></textarea></div>
+</div>
+<div class="AUDIT_actions">
+  <button class="AUDIT_btn AUDIT_ghost" name="draft" value="1"><%= t('Save draft') %></button>
+  <button class="AUDIT_btn" name="submit" value="1"><%= t('Submit for approval') %></button>
+</div>
+</form>
+<%- include('partials/AUDIT_foot') %>
